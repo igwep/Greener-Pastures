@@ -86,7 +86,7 @@ export function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-32 px-4 overflow-hidden relative">
+      <section className="md:pt-16 pt-6 pb-32 px-4 overflow-hidden relative">
         {/* Decorative background elements */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-ajo-50 to-transparent rounded-full blur-3xl -z-10 opacity-70"></div>
 
