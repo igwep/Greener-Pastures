@@ -42,7 +42,7 @@ export function LandingPage() {
     }
   };
   return (
-    <div className="min-h-screen bg-surface font-sans selection:bg-ajo-200 selection:text-ajo-900">
+    <div className="min-h-screen bg-surface font-sans selection:bg-ajo-200 selection:text-ajo-900 overflow-x-hidden">
       {/* Navbar */}
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -88,7 +88,7 @@ export function LandingPage() {
       {/* Hero Section */}
       <section className="md:pt-16 pt-6 pb-32 px-4 overflow-hidden relative">
         {/* Decorative background elements */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-ajo-50 to-transparent rounded-full blur-3xl -z-10 opacity-70"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-ajo-50 to-transparent rounded-full blur-3xl -z-10 opacity-70 max-w-[90vw]"></div>
 
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
           <motion.div
@@ -103,7 +103,7 @@ export function LandingPage() {
               
               🌱 Trusted by 10,000+ savers
             </Badge>
-            <h1 className="text-5xl lg:text-7xl font-bold text-ink leading-[1.1] mb-6 tracking-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-ink leading-[1.1] mb-6 tracking-tight break-words">
               Your money,
               <br />
               <span className="text-ajo-600 relative">
@@ -211,7 +211,7 @@ export function LandingPage() {
                 duration: 4,
                 ease: 'easeInOut'
               }}
-              className="absolute -left-12 top-12 z-20 bg-white rounded-2xl p-4 shadow-xl border border-gray-100 flex items-center gap-3">
+              className="absolute -left-4 sm:-left-12 top-12 z-20 bg-white rounded-2xl p-4 shadow-xl border border-gray-100 flex items-center gap-3 max-w-[200px]">
               
               <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-500">
                 <FlameIcon className="w-5 h-5" />
@@ -234,7 +234,7 @@ export function LandingPage() {
                 ease: 'easeInOut',
                 delay: 1
               }}
-              className="absolute -right-8 bottom-24 z-20 bg-white rounded-2xl p-4 shadow-xl border border-gray-100">
+              className="absolute -right-4 sm:-right-8 bottom-24 z-20 bg-white rounded-2xl p-4 shadow-xl border border-gray-100">
               
               <p className="text-xs text-ink-muted font-medium mb-1">
                 Total Saved
@@ -390,7 +390,7 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-center overflow-x-hidden">
             {/* Starter Plan */}
             <Card className="animated-border relative flex flex-col p-10 rounded-[2rem] border-none shadow-md overflow-visible bg-white">
               <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center mb-8 text-ink-secondary">
@@ -580,7 +580,7 @@ export function LandingPage() {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 overflow-x-hidden">
             {[
             {
               quote:
