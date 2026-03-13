@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root {
+  --ajo-primary: #16A34A;
+  --ajo-dark: #14532D;
+  --ajo-soft: #DCFCE7;
+  --ajo-bg: #F8FAF9;
+  --ajo-text: #111827;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--ajo-bg);
+  color: var(--ajo-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+/* Number input arrows removal */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+/* Animated green border effect */
+@keyframes border-rotate {
+  0% { --border-angle: 0deg; }
+  100% { --border-angle: 360deg; }
+}
+@property --border-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.animated-border {
+  position: relative;
+  background: white;
+  border-radius: 24px;
+  isolation: isolate;
+}
+.animated-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 26px;
+  background: conic-gradient(
+    from var(--border-angle),
+    #16A34A 0%,
+    #4ADE80 25%,
+    #BBF7D0 35%,
+    transparent 50%,
+    #BBF7D0 65%,
+    #4ADE80 75%,
+    #16A34A 100%
+  );
+  z-index: -1;
+  animation: border-rotate 4s linear infinite;
+}
+.animated-border::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: white;
+  border-radius: 24px;
+  z-index: -1;
+}
+/* Dark variant for the wallet card */
+.animated-border-dark::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 26px;
+  background: conic-gradient(
+    from var(--border-angle),
+    #22C55E 0%,
+    #4ADE80 25%,
+    #86EFAC 35%,
+    transparent 50%,
+    #86EFAC 65%,
+    #4ADE80 75%,
+    #22C55E 100%
+  );
+  z-index: -1;
+  animation: border-rotate 4s linear infinite;
+}
+.animated-border-dark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #14532D;
+  border-radius: 24px;
+  z-index: -1;
+}

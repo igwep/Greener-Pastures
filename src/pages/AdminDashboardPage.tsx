@@ -1,0 +1,232 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Card } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
+import {
+  UsersIcon,
+  TargetIcon,
+  WalletIcon,
+  AlertCircleIcon,
+  CheckIcon,
+  XIcon,
+  SproutIcon } from
+'lucide-react';
+const approvals = [
+{
+  id: 1,
+  user: 'Adaeze Okonkwo',
+  plan: 'Growth Plan',
+  day: 19,
+  amount: 1000,
+  date: '10 mins ago'
+},
+{
+  id: 2,
+  user: 'Chinedu Eze',
+  plan: 'Premium Plan',
+  day: 5,
+  amount: 5000,
+  date: '1 hour ago'
+},
+{
+  id: 3,
+  user: 'Oluwaseun B.',
+  plan: 'Starter Plan',
+  day: 22,
+  amount: 500,
+  date: '2 hours ago'
+},
+{
+  id: 4,
+  user: 'Ngozi Kalu',
+  plan: 'Growth Plan',
+  day: 1,
+  amount: 1000,
+  date: '3 hours ago'
+},
+{
+  id: 5,
+  user: 'Ibrahim M.',
+  plan: 'Premium Plan',
+  day: 30,
+  amount: 5000,
+  date: '5 hours ago'
+}];
+
+export function AdminDashboardPage() {
+  return (
+    <div className="min-h-screen bg-surface flex">
+      {/* Admin Sidebar */}
+      <aside className="w-64 bg-ink text-white hidden lg:flex flex-col">
+        <div className="h-20 flex items-center gap-3 px-6 border-b border-gray-800 shrink-0">
+          <div className="w-8 h-8 bg-ajo-600 rounded-lg flex items-center justify-center shadow-sm">
+            <SproutIcon className="w-5 h-5 text-white" />
+          </div>
+          <span className="font-bold text-lg leading-tight">
+            Greener Pastures
+            <br />
+            <span className="text-gray-400 text-sm font-medium">Admin</span>
+          </span>
+        </div>
+        <nav className="flex-1 p-4 space-y-2 mt-4">
+          {[
+          'Dashboard',
+          'Users',
+          'Savings Plans',
+          'Payments',
+          'Withdrawals',
+          'Marketplace'].
+          map((item, i) =>
+          <a
+            key={i}
+            href="#"
+            className={`block px-4 py-3 rounded-xl text-sm font-medium transition-colors ${i === 0 ? 'bg-ajo-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}>
+            
+              {item}
+            </a>
+          )}
+        </nav>
+      </aside>
+
+      <main className="flex-1 p-8 overflow-y-auto">
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 20
+          }}
+          animate={{
+            opacity: 1,
+            y: 0
+          }}
+          className="max-w-6xl mx-auto space-y-8 pb-12">
+          
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-ink tracking-tight">
+              Admin Overview
+            </h1>
+            <Badge
+              variant="warning"
+              className="px-3 py-1.5 rounded-lg font-bold">
+              
+              23 Pending Approvals
+            </Badge>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="flex items-center gap-5 p-6 rounded-2xl border border-gray-100 shadow-sm">
+              <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl">
+                <UsersIcon className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-ink-muted mb-1">
+                  Total Users
+                </p>
+                <p className="text-3xl font-black text-ink tracking-tight">
+                  10,234
+                </p>
+              </div>
+            </Card>
+            <Card className="flex items-center gap-5 p-6 rounded-2xl border border-gray-100 shadow-sm">
+              <div className="p-4 bg-purple-50 text-purple-600 rounded-2xl">
+                <TargetIcon className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-ink-muted mb-1">
+                  Active Plans
+                </p>
+                <p className="text-3xl font-black text-ink tracking-tight">
+                  3,456
+                </p>
+              </div>
+            </Card>
+            <Card className="flex items-center gap-5 p-6 rounded-2xl border border-gray-100 shadow-sm">
+              <div className="p-4 bg-ajo-50 text-ajo-600 rounded-2xl">
+                <WalletIcon className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-ink-muted mb-1">
+                  Total Deposits
+                </p>
+                <p className="text-3xl font-black text-ink tracking-tight">
+                  ₦45.2M
+                </p>
+              </div>
+            </Card>
+            <Card className="flex items-center gap-5 p-6 rounded-2xl border border-amber-200 shadow-sm bg-amber-50/30">
+              <div className="p-4 bg-amber-100 text-amber-600 rounded-2xl">
+                <AlertCircleIcon className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-amber-700 mb-1">
+                  Pending
+                </p>
+                <p className="text-3xl font-black text-amber-900 tracking-tight">
+                  23
+                </p>
+              </div>
+            </Card>
+          </div>
+
+          <Card className="p-0 overflow-hidden rounded-3xl border border-gray-100 shadow-sm">
+            <div className="p-6 sm:px-8 border-b border-gray-100 bg-surface">
+              <h2 className="text-lg font-bold text-ink">Payment Approvals</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-white text-ink-secondary font-bold uppercase tracking-wider text-xs border-b border-gray-100">
+                  <tr>
+                    <th className="px-8 py-5">User</th>
+                    <th className="px-8 py-5">Plan & Day</th>
+                    <th className="px-8 py-5">Amount</th>
+                    <th className="px-8 py-5">Proof</th>
+                    <th className="px-8 py-5">Time</th>
+                    <th className="px-8 py-5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 bg-white">
+                  {approvals.map((row) =>
+                  <tr
+                    key={row.id}
+                    className="hover:bg-gray-50 transition-colors">
+                    
+                      <td className="px-8 py-5 font-bold text-ink text-base">
+                        {row.user}
+                      </td>
+                      <td className="px-8 py-5">
+                        <div className="font-semibold text-ink">{row.plan}</div>
+                        <div className="text-ink-muted text-xs mt-0.5 font-medium">
+                          Day {row.day}
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 font-black text-ink text-base">
+                        ₦{row.amount.toLocaleString()}
+                      </td>
+                      <td className="px-8 py-5">
+                        <div className="w-12 h-12 bg-surface border border-gray-200 rounded-xl cursor-pointer hover:border-ajo-400 transition-colors flex items-center justify-center text-[10px] font-bold text-ink-muted">
+                          IMG
+                        </div>
+                      </td>
+                      <td className="px-8 py-5 text-ink-secondary font-medium">
+                        {row.date}
+                      </td>
+                      <td className="px-8 py-5">
+                        <div className="flex items-center justify-end gap-3">
+                          <button className="p-2.5 text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100">
+                            <XIcon className="w-5 h-5" />
+                          </button>
+                          <button className="p-2.5 text-white bg-ajo-600 hover:bg-ajo-700 rounded-xl transition-colors shadow-sm">
+                            <CheckIcon className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </motion.div>
+      </main>
+    </div>);
+
+}
