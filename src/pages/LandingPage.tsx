@@ -88,7 +88,7 @@ export function LandingPage() {
       {/* Hero Section */}
       <section className="md:pt-16 pt-6 pb-32 px-4 overflow-hidden relative">
         {/* Decorative background elements */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-ajo-50 to-transparent rounded-full blur-3xl -z-10 opacity-70 max-w-[90vw]"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[90vw] max-w-[800px] h-[600px] bg-gradient-to-b from-ajo-50 to-transparent rounded-full blur-3xl -z-10 opacity-70"></div>
 
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
           <motion.div
@@ -103,7 +103,7 @@ export function LandingPage() {
               
               🌱 Trusted by 10,000+ savers
             </Badge>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-ink leading-[1.1] mb-6 tracking-tight break-words">
+            <h1 className="text-5xl lg:text-7xl font-bold text-ink leading-[1.1] mb-6 tracking-tight">
               Your money,
               <br />
               <span className="text-ajo-600 relative">
@@ -211,7 +211,7 @@ export function LandingPage() {
                 duration: 4,
                 ease: 'easeInOut'
               }}
-              className="absolute -left-4 sm:-left-12 top-12 z-20 bg-white rounded-2xl p-4 shadow-xl border border-gray-100 flex items-center gap-3 max-w-[200px]">
+              className="absolute -left-4 sm:-left-8 top-12 z-20 bg-white rounded-2xl p-4 shadow-xl border border-gray-100 flex items-center gap-3">
               
               <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-500">
                 <FlameIcon className="w-5 h-5" />
@@ -234,7 +234,7 @@ export function LandingPage() {
                 ease: 'easeInOut',
                 delay: 1
               }}
-              className="absolute -right-4 sm:-right-8 bottom-24 z-20 bg-white rounded-2xl p-4 shadow-xl border border-gray-100">
+              className="absolute -right-4 sm:-right-6 bottom-24 z-20 bg-white rounded-2xl p-4 shadow-xl border border-gray-100">
               
               <p className="text-xs text-ink-muted font-medium mb-1">
                 Total Saved
@@ -356,7 +356,7 @@ export function LandingPage() {
               variants={fadeIn}
               className="animated-border relative bg-white p-8 rounded-3xl border-none shadow-sm overflow-visible">
               
-                <div className="absolute -top-6 -right-4 text-[120px] font-black text-gray-50/80 leading-none select-none -z-10">
+                <div className="absolute -top-6 -right-4 text-[80px] sm:text-[100px] md:text-[120px] font-black text-gray-50/80 leading-none select-none -z-10">
                   {step.num}
                 </div>
                 <div className="w-16 h-16 bg-ajo-50 rounded-2xl flex items-center justify-center mb-8 text-ajo-600 border border-ajo-100 shadow-sm">
@@ -390,7 +390,7 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-center overflow-x-hidden">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
             {/* Starter Plan */}
             <Card className="animated-border relative flex flex-col p-10 rounded-[2rem] border-none shadow-md overflow-visible bg-white">
               <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center mb-8 text-ink-secondary">
@@ -431,8 +431,8 @@ export function LandingPage() {
             {/* Growth Plan (Popular) */}
             <Card className="animated-border animated-border-dark relative flex flex-col p-10 rounded-[2rem] border-none shadow-2xl scale-105 z-10 bg-ajo-900 text-white overflow-visible">
               {/* Decorative mesh/gradient */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-ajo-500 opacity-20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-ajo-700 opacity-30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3"></div>
+              <div className="absolute top-0 right-0 w-32 sm:w-48 md:w-64 h-32 sm:h-48 md:h-64 bg-ajo-500 opacity-20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+              <div className="absolute bottom-0 left-0 w-32 sm:w-48 md:w-64 h-32 sm:h-48 md:h-64 bg-ajo-700 opacity-30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3"></div>
 
               <div className="absolute top-0 inset-x-0 flex justify-center -mt-4">
                 <span className="bg-ajo-400 text-ajo-950 px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
@@ -580,7 +580,7 @@ export function LandingPage() {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 overflow-x-hidden">
+          <div className="grid md:grid-cols-3 gap-8">
             {[
             {
               quote:
