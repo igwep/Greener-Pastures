@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { HTMLAttributes } from 'react';
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   variant?: 'success' | 'warning' | 'error' | 'info' | 'neutral';
+  children: React.ReactNode;
 }
 export function Badge({
   className = '',

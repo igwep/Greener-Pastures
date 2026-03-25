@@ -1,9 +1,10 @@
 import React, { forwardRef } from 'react';
 import { Loader2 } from 'lucide-react';
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
+  children?: React.ReactNode;
 }
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (

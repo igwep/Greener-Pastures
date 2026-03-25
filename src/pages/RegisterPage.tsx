@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
+import { useRegisterMutation } from '../services/auth/hooks';
+import { usePlansQuery } from '../services/plans/hooks';
 import {
   UserIcon,
   MailIcon,
@@ -13,8 +15,34 @@ import {
 'lucide-react';
 export function RegisterPage() {
   const navigate = useNavigate();
-  const handleRegister = (e: React.FormEvent) => {
+  const registerMutation = useRegisterMutation();
+  const plansQuery = usePlansQuery();
+
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [selectedPlanId, setSelectedPlanId] = useState('');
+
+  const nameParts = useMemo(() => {
+    const parts = fullName.trim().split(/\s+/).filter(Boolean);
+    const firstName = parts[0] ?? '';
+    const lastName = parts.length > 1 ? parts.slice(1).join(' ') : '';
+    return { firstName, lastName };
+  }, [fullName]);
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    await registerMutation.mutateAsync({
+      email: email || undefined,
+      phone: phone || undefined,
+      password,
+      firstName: nameParts.firstName,
+      lastName: nameParts.lastName,
+      selectedPlanId
+    });
+
     navigate('/dashboard');
   };
   return (
@@ -106,6 +134,10 @@ export function RegisterPage() {
                   type="text"
                   placeholder="Adaeze Okonkwo"
                   icon={<UserIcon className="w-5 h-5" />}
+                  value={fullName}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setFullName(e.target.value)
+                  }
                   required />
                 
 
@@ -114,6 +146,10 @@ export function RegisterPage() {
                   type="email"
                   placeholder="adaeze@example.com"
                   icon={<MailIcon className="w-5 h-5" />}
+                  value={email}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setEmail(e.target.value)
+                  }
                   required />
                 
 
@@ -122,7 +158,10 @@ export function RegisterPage() {
                   type="tel"
                   placeholder="08012345678"
                   icon={<PhoneIcon className="w-5 h-5" />}
-                  required />
+                  value={phone}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setPhone(e.target.value)
+                  } />
                 
 
                 <Input
@@ -130,6 +169,10 @@ export function RegisterPage() {
                   type="password"
                   placeholder="••••••••"
                   icon={<LockIcon className="w-5 h-5" />}
+                  value={password}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setPassword(e.target.value)
+                  }
                   required />
                 
 
@@ -137,15 +180,40 @@ export function RegisterPage() {
                   <label className="text-sm font-medium text-ink">
                     Select Ajo Plan
                   </label>
-                  <select className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-ink focus:outline-none focus:ring-2 focus:ring-ajo-600/20 focus:border-ajo-600 transition-all appearance-none">
-                    <option value="starter">Starter Plan (₦500 daily)</option>
-                    <option value="growth">Growth Plan (₦1,000 daily)</option>
-                    <option value="premium">Premium Plan (₦5,000 daily)</option>
+                  <select
+                    value={selectedPlanId}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                      setSelectedPlanId(e.target.value)
+                    }
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-ink focus:outline-none focus:ring-2 focus:ring-ajo-600/20 focus:border-ajo-600 transition-all appearance-none"
+                    required>
+                    <option value="">
+                      {plansQuery.isLoading ? 'Loading plans...' : 'Select a plan'}
+                    </option>
+                    {plansQuery.data?.map((plan) => (
+                      <option key={plan.id} value={plan.id}>
+                        {typeof plan.name === 'string' && plan.name.trim().length > 0
+                          ? plan.name
+                          : plan.id}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
+                {plansQuery.error && (
+                  <p className="text-sm text-red-600">Failed to load plans.</p>
+                )}
+
+                {registerMutation.error && (
+                  <p className="text-sm text-red-600">
+                    {registerMutation.error.message}
+                  </p>
+                )}
+
                 <Button
                   type="submit"
+                  isLoading={registerMutation.isPending}
+                  disabled={registerMutation.isPending}
                   className="w-full rounded-xl h-12 text-base mt-6">
                   
                   Create Account

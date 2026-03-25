@@ -1,7 +1,10 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
+import React, { useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { Card } from "../components/ui/Card";
+import { Badge } from "../components/ui/Badge";
+import { Button } from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
+import { Modal } from "../components/ui/Modal";
 import {
   UsersIcon,
   TargetIcon,
@@ -9,51 +12,54 @@ import {
   AlertCircleIcon,
   CheckIcon,
   XIcon,
-  SproutIcon } from
-'lucide-react';
-const approvals = [
-{
-  id: 1,
-  user: 'Adaeze Okonkwo',
-  plan: 'Growth Plan',
-  day: 19,
-  amount: 1000,
-  date: '10 mins ago'
-},
-{
-  id: 2,
-  user: 'Chinedu Eze',
-  plan: 'Premium Plan',
-  day: 5,
-  amount: 5000,
-  date: '1 hour ago'
-},
-{
-  id: 3,
-  user: 'Oluwaseun B.',
-  plan: 'Starter Plan',
-  day: 22,
-  amount: 500,
-  date: '2 hours ago'
-},
-{
-  id: 4,
-  user: 'Ngozi Kalu',
-  plan: 'Growth Plan',
-  day: 1,
-  amount: 1000,
-  date: '3 hours ago'
-},
-{
-  id: 5,
-  user: 'Ibrahim M.',
-  plan: 'Premium Plan',
-  day: 30,
-  amount: 5000,
-  date: '5 hours ago'
-}];
+  SproutIcon,
+  CreditCardIcon,
+  FileTextIcon,
+  SearchIcon,
+  ChevronDownIcon,
+  SettingsIcon,
+  ShoppingBagIcon,
+  LogOutIcon,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { clearSession } from "../services/auth/session";
+
+import { UserManagement } from "./admin/UserManagement";
+import { Overview } from "./admin/Overview";
+import { Loans } from "./admin/Loans";
+import { DepositsPage } from "./admin/DepositsPage";
+import { WithdrawalsPage } from "./admin/WithdrawalsPage";
+import { Repayments } from "./admin/Repayments";
+import { Settings } from "./admin/Settings";
+import { Marketplace } from "./admin/Marketplace";
 
 export function AdminDashboardPage() {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<
+    | "overview"
+    | "users"
+    | "loans"
+    | "deposits"
+    | "withdrawals"
+    | "repayments"
+    | "settings"
+    | "marketplace"
+  >("overview");
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = () => {
+    clearSession();
+    navigate("/admin/login");
+  };
+
+  const handleCancelLogout = () => {
+    setShowLogoutModal(false);
+  };
+
   return (
     <div className="min-h-screen bg-surface flex">
       {/* Admin Sidebar */}
@@ -70,163 +76,123 @@ export function AdminDashboardPage() {
         </div>
         <nav className="flex-1 p-4 space-y-2 mt-4">
           {[
-          'Dashboard',
-          'Users',
-          'Savings Plans',
-          'Payments',
-          'Withdrawals',
-          'Marketplace'].
-          map((item, i) =>
-          <a
-            key={i}
-            href="#"
-            className={`block px-4 py-3 rounded-xl text-sm font-medium transition-colors ${i === 0 ? 'bg-ajo-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}>
-            
-              {item}
-            </a>
-          )}
+            { label: "Dashboard", tab: "overview", icon: SproutIcon },
+            { label: "Users", tab: "users", icon: UsersIcon },
+            { label: "Loans", tab: "loans", icon: CreditCardIcon },
+            { label: "Deposits", tab: "deposits", icon: WalletIcon },
+            { label: "Withdrawals", tab: "withdrawals", icon: TargetIcon },
+            { label: "Repayments", tab: "repayments", icon: FileTextIcon },
+            { label: "Settings", tab: "settings", icon: SettingsIcon },
+            { label: "Marketplace", tab: "marketplace", icon: ShoppingBagIcon },
+          ].map((item) => (
+            <button
+              key={item.tab}
+              onClick={() => setActiveTab(item.tab as any)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                activeTab === item.tab
+                  ? "bg-ajo-600 text-white shadow-lg shadow-ajo-600/20"
+                  : "text-gray-400 hover:bg-gray-800 hover:text-white"
+              }`}
+            >
+              <item.icon className="w-5 h-5" />
+              {item.label}
+            </button>
+          ))}
+          <div className="pt-4 mt-4 border-t border-gray-800">
+            {["Savings Plans", "Withdrawals", "Marketplace"].map((item, i) => (
+              <a
+                key={i}
+                href="#"
+                className="block px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+              >
+                {item}
+              </a>
+            ))}
+          </div>
         </nav>
+        
+        {/* Logout Button */}
+        <div className="p-4 border-t border-gray-800 shrink-0">
+          <button
+            onClick={handleLogoutClick}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600/10 hover:bg-red-600/20 text-red-400 hover:text-red-300 rounded-xl text-sm font-medium transition-colors"
+          >
+            <LogOutIcon className="w-4 h-4" />
+            Logout
+          </button>
+        </div>
       </aside>
 
       <main className="flex-1 p-8 overflow-y-auto">
         <motion.div
           initial={{
             opacity: 0,
-            y: 20
+            y: 20,
           }}
           animate={{
             opacity: 1,
-            y: 0
+            y: 0,
           }}
-          className="max-w-6xl mx-auto space-y-8 pb-12">
-          
+          className="max-w-6xl mx-auto space-y-8 pb-12"
+        >
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold text-ink tracking-tight">
-              Admin Overview
+              {activeTab === "overview" && "Admin Overview"}
+              {activeTab === "users" && "User Management"}
+              {activeTab === "loans" && "Loan Management"}
+              {activeTab === "deposits" && "Deposits Management"}
+              {activeTab === "withdrawals" && "Withdrawals Management"}
+              {activeTab === "repayments" && "Loan Repayments"}
             </h1>
-            <Badge
-              variant="warning"
-              className="px-3 py-1.5 rounded-lg font-bold">
-              
-              23 Pending Approvals
-            </Badge>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="flex items-center gap-5 p-6 rounded-2xl border border-gray-100 shadow-sm">
-              <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl">
-                <UsersIcon className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-ink-muted mb-1">
-                  Total Users
-                </p>
-                <p className="text-3xl font-black text-ink tracking-tight">
-                  10,234
-                </p>
-              </div>
-            </Card>
-            <Card className="flex items-center gap-5 p-6 rounded-2xl border border-gray-100 shadow-sm">
-              <div className="p-4 bg-purple-50 text-purple-600 rounded-2xl">
-                <TargetIcon className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-ink-muted mb-1">
-                  Active Plans
-                </p>
-                <p className="text-3xl font-black text-ink tracking-tight">
-                  3,456
-                </p>
-              </div>
-            </Card>
-            <Card className="flex items-center gap-5 p-6 rounded-2xl border border-gray-100 shadow-sm">
-              <div className="p-4 bg-ajo-50 text-ajo-600 rounded-2xl">
-                <WalletIcon className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-ink-muted mb-1">
-                  Total Deposits
-                </p>
-                <p className="text-3xl font-black text-ink tracking-tight">
-                  ₦45.2M
-                </p>
-              </div>
-            </Card>
-            <Card className="flex items-center gap-5 p-6 rounded-2xl border border-amber-200 shadow-sm bg-amber-50/30">
-              <div className="p-4 bg-amber-100 text-amber-600 rounded-2xl">
-                <AlertCircleIcon className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-amber-700 mb-1">
-                  Pending
-                </p>
-                <p className="text-3xl font-black text-amber-900 tracking-tight">
-                  23
-                </p>
-              </div>
-            </Card>
-          </div>
-
-          <Card className="p-0 overflow-hidden rounded-3xl border border-gray-100 shadow-sm">
-            <div className="p-6 sm:px-8 border-b border-gray-100 bg-surface">
-              <h2 className="text-lg font-bold text-ink">Payment Approvals</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-white text-ink-secondary font-bold uppercase tracking-wider text-xs border-b border-gray-100">
-                  <tr>
-                    <th className="px-8 py-5">User</th>
-                    <th className="px-8 py-5">Plan & Day</th>
-                    <th className="px-8 py-5">Amount</th>
-                    <th className="px-8 py-5">Proof</th>
-                    <th className="px-8 py-5">Time</th>
-                    <th className="px-8 py-5 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 bg-white">
-                  {approvals.map((row) =>
-                  <tr
-                    key={row.id}
-                    className="hover:bg-gray-50 transition-colors">
-                    
-                      <td className="px-8 py-5 font-bold text-ink text-base">
-                        {row.user}
-                      </td>
-                      <td className="px-8 py-5">
-                        <div className="font-semibold text-ink">{row.plan}</div>
-                        <div className="text-ink-muted text-xs mt-0.5 font-medium">
-                          Day {row.day}
-                        </div>
-                      </td>
-                      <td className="px-8 py-5 font-black text-ink text-base">
-                        ₦{row.amount.toLocaleString()}
-                      </td>
-                      <td className="px-8 py-5">
-                        <div className="w-12 h-12 bg-surface border border-gray-200 rounded-xl cursor-pointer hover:border-ajo-400 transition-colors flex items-center justify-center text-[10px] font-bold text-ink-muted">
-                          IMG
-                        </div>
-                      </td>
-                      <td className="px-8 py-5 text-ink-secondary font-medium">
-                        {row.date}
-                      </td>
-                      <td className="px-8 py-5">
-                        <div className="flex items-center justify-end gap-3">
-                          <button className="p-2.5 text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100">
-                            <XIcon className="w-5 h-5" />
-                          </button>
-                          <button className="p-2.5 text-white bg-ajo-600 hover:bg-ajo-700 rounded-xl transition-colors shadow-sm">
-                            <CheckIcon className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </Card>
+          {activeTab === "overview" && <Overview />}
+          {activeTab === "users" && <UserManagement />}
+          {activeTab === "loans" && <Loans />}
+          {activeTab === "deposits" && <DepositsPage />}
+          {activeTab === "withdrawals" && <WithdrawalsPage />}
+          {activeTab === "repayments" && <Repayments />}
+          {activeTab === "settings" && <Settings />}
+          {activeTab === "marketplace" && <Marketplace />}
         </motion.div>
       </main>
-    </div>);
 
+      {/* Logout Confirmation Modal */}
+      <Modal
+        isOpen={showLogoutModal}
+        onClose={handleCancelLogout}
+        title="Confirm Logout"
+        footer={
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="ghost"
+              onClick={handleCancelLogout}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleConfirmLogout}
+            >
+              Logout
+            </Button>
+          </div>
+        }
+      >
+        <div className="p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+              <LogOutIcon className="w-6 h-6 text-red-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Are you sure you want to logout?</h3>
+              <p className="text-gray-600 text-sm mt-1">
+                You will need to login again to access the admin dashboard.
+              </p>
+            </div>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
 }

@@ -1,6 +1,7 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, HTMLAttributes } from 'react';
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   hoverable?: boolean;
+  children?: React.ReactNode;
 }
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className = '', hoverable = false, children, ...props }, ref) => {

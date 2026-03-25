@@ -1,12 +1,96 @@
-import React, { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useSearchParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Avatar } from '../components/ui/Avatar';
 import { CameraIcon } from 'lucide-react';
+import { SearchableSelect } from '../components/ui/SearchableSelect';
+import { useAuthMeQuery } from '../services/auth/hooks';
+import { useCreateBankAccountMutation, useUpdateBankAccountMutation } from '../services/bankAccounts/hooks';
+import { useNigerianBanksQuery } from '../services/banks/hooks';
 export function ProfilePage() {
-  const [activeTab, setActiveTab] = useState('personal');
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') ?? 'personal');
+  const { data: me, isLoading: isMeLoading, error: meError } = useAuthMeQuery();
+  const { data: banks, isLoading: isBanksLoading, error: banksError } = useNigerianBanksQuery();
+
+  const createBankAccountMutation = useCreateBankAccountMutation();
+  const updateBankAccountMutation = useUpdateBankAccountMutation();
+
+  const bankAccounts = useMemo(() => me?.user?.bankAccounts ?? [], [me]);
+  const defaultBankAccount = useMemo(
+    () => bankAccounts.find((acc) => acc.isDefault) ?? bankAccounts[0] ?? null,
+    [bankAccounts]
+  );
+
+  const [selectedBankAccountId, setSelectedBankAccountId] = useState<string>('');
+  const selectedBankAccount = useMemo(() => {
+    if (!selectedBankAccountId) return null;
+    return bankAccounts.find((acc) => acc.id === selectedBankAccountId) ?? null;
+  }, [bankAccounts, selectedBankAccountId]);
+
+  const [bankName, setBankName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [accountName, setAccountName] = useState('');
+
+  useEffect(() => {
+    if (!bankAccounts.length) {
+      setSelectedBankAccountId('');
+      setBankName('');
+      setAccountNumber('');
+      setAccountName('');
+      return;
+    }
+
+    const nextSelected = selectedBankAccountId || defaultBankAccount?.id || '';
+    if (nextSelected !== selectedBankAccountId) {
+      setSelectedBankAccountId(nextSelected);
+    }
+  }, [bankAccounts.length, defaultBankAccount?.id, selectedBankAccountId]);
+
+  useEffect(() => {
+    const source = selectedBankAccount ?? defaultBankAccount;
+    if (!source) return;
+    setBankName(source.bankName ?? '');
+    setAccountNumber(source.accountNumber ?? '');
+    setAccountName(source.accountName ?? '');
+  }, [defaultBankAccount, selectedBankAccount]);
+
+  const handleSaveBankDetails = async () => {
+    const payload = {
+      bankName,
+      accountName,
+      accountNumber
+    };
+
+    try {
+      if (!bankAccounts.length) {
+        await createBankAccountMutation.mutateAsync({
+          bankName: payload.bankName,
+          accountName: payload.accountName,
+          accountNumber: payload.accountNumber,
+          isDefault: true
+        });
+        toast.success('Bank details added successfully!');
+        return;
+      }
+
+      if (!selectedBankAccountId) return;
+      await updateBankAccountMutation.mutateAsync({
+        bankAccountId: selectedBankAccountId,
+        payload: {
+          ...payload,
+          isDefault: true
+        }
+      });
+      toast.success('Bank details updated successfully!');
+    } catch {
+      toast.error('Failed to save bank details.');
+    }
+  };
   return (
     <motion.div
       initial={{
@@ -121,36 +205,70 @@ export function ProfilePage() {
                 Withdrawal Account
               </h3>
 
+              {meError ? (
+                <div className="text-sm text-red-600 font-medium">Failed to load bank details.</div>
+              ) : null}
+              {banksError ? (
+                <div className="text-sm text-red-600 font-medium">Failed to load banks list.</div>
+              ) : null}
+
               <div className="space-y-6 max-w-md">
+                {bankAccounts.length > 1 ? (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-ink">
+                      Saved Accounts
+                    </label>
+                    <select
+                      disabled={isMeLoading}
+                      value={selectedBankAccountId}
+                      onChange={(e) => setSelectedBankAccountId(e.target.value)}
+                      className="w-full h-12 rounded-xl border border-gray-200 bg-white px-4 text-ink focus:outline-none focus:ring-2 focus:ring-ajo-600/20 focus:border-ajo-600 transition-all appearance-none shadow-sm"
+                    >
+                      {bankAccounts.map((acc) => (
+                        <option key={acc.id} value={acc.id}>
+                          {acc.bankName} • {acc.accountNumber}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : null}
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-ink">
                     Bank Name
                   </label>
-                  <select className="w-full h-12 rounded-xl border border-gray-200 bg-white px-4 text-ink focus:outline-none focus:ring-2 focus:ring-ajo-600/20 focus:border-ajo-600 transition-all appearance-none shadow-sm">
-                    <option>Guaranty Trust Bank</option>
-                    <option>Access Bank</option>
-                    <option>First Bank of Nigeria</option>
-                    <option>United Bank for Africa</option>
-                    <option>Zenith Bank</option>
-                  </select>
+                  <SearchableSelect
+                    value={bankName}
+                    onChange={setBankName}
+                    placeholder="Select bank"
+                    disabled={isMeLoading || isBanksLoading}
+                    options={banks ?? []}
+                    className="h-12"
+                  />
                 </div>
 
                 <Input
                 label="Account Number"
-                defaultValue="0123456789"
+                value={accountNumber}
+                onChange={(e) => setAccountNumber(e.target.value)}
                 className="h-12 rounded-xl shadow-sm" />
               
 
                 <Input
                 label="Account Name"
-                defaultValue="Adaeze Okonkwo"
-                disabled
-                className="bg-surface text-ink-muted h-12 rounded-xl border-gray-100" />
+                value={accountName}
+                onChange={(e) => setAccountName(e.target.value)}
+                className="h-12 rounded-xl shadow-sm" />
               
               </div>
 
               <div className="pt-6">
-                <Button className="rounded-xl h-12 px-8">
+                <Button
+                  className="rounded-xl h-12 px-8"
+                  isLoading={createBankAccountMutation.isPending || updateBankAccountMutation.isPending}
+                  onClick={handleSaveBankDetails}
+                  disabled={isMeLoading || !bankName || !accountName || !accountNumber}
+                >
                   Update Bank Details
                 </Button>
               </div>

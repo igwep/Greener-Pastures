@@ -1,14 +1,29 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
+import { useLoginMutation } from '../services/auth/hooks';
 import { MailIcon, LockIcon, SproutIcon } from 'lucide-react';
 export function LoginPage() {
   const navigate = useNavigate();
-  const handleLogin = (e: React.FormEvent) => {
+  const loginMutation = useLoginMutation();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const res = await loginMutation.mutateAsync({
+      email: email || undefined,
+      password
+    });
+
+    localStorage.setItem('auth_token', res.token);
+    localStorage.setItem('auth_user', JSON.stringify(res.user));
+
     navigate('/dashboard');
   };
   return (
@@ -100,6 +115,10 @@ export function LoginPage() {
                   type="email"
                   placeholder="you@example.com"
                   icon={<MailIcon className="w-5 h-5" />}
+                  value={email}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setEmail(e.target.value)
+                  }
                   required />
                 
 
@@ -109,6 +128,10 @@ export function LoginPage() {
                     type="password"
                     placeholder="••••••••"
                     icon={<LockIcon className="w-5 h-5" />}
+                    value={password}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setPassword(e.target.value)
+                    }
                     required />
                   
                   <div className="flex justify-end mt-2">
@@ -121,8 +144,16 @@ export function LoginPage() {
                   </div>
                 </div>
 
+                {loginMutation.error && (
+                  <p className="text-sm text-red-600">
+                    {loginMutation.error.message}
+                  </p>
+                )}
+
                 <Button
                   type="submit"
+                  isLoading={loginMutation.isPending}
+                  disabled={loginMutation.isPending}
                   className="w-full rounded-xl h-12 text-base mt-4">
                   
                   Sign In
