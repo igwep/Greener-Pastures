@@ -5,12 +5,14 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
 import { useAdminLoginMutation } from '../services/auth/hooks';
+import { useAuth } from '../contexts/AuthContext';
 import { MailIcon, LockIcon, SproutIcon } from 'lucide-react';
 
 export function AdminLoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const loginMutation = useAdminLoginMutation();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,8 +25,7 @@ export function AdminLoginPage() {
       password
     });
 
-    localStorage.setItem('auth_token', res.token);
-    localStorage.setItem('auth_user', JSON.stringify(res.admin));
+    login(res.token, res.admin);
 
     const next = (location.state as any)?.from?.pathname;
     navigate(typeof next === 'string' ? next : '/admin');

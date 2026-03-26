@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { AuthProvider } from "./contexts/AuthContext";
 import { DashboardLayout } from "./components/layout/DashboardLayout";
 import { ProtectedRoute } from "./components/routing/ProtectedRoute";
 import { LandingPage } from "./pages/LandingPage";
@@ -22,38 +23,40 @@ import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 import { AdminLoginPage } from "./pages/AdminLoginPage";
 export function App() {
   return (
-    <BrowserRouter>
-      <ToastContainer />
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <ToastContainer />
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-        {/* Admin Route */}
-        <Route element={<ProtectedRoute redirectTo="/admin/login" />}>
-          <Route path="/admin" element={<AdminDashboardPage />} />
-        </Route>
-
-        {/* User Dashboard Routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={<DashboardLayout />}>
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/plans" element={<AjoPlanPage />} />
-            <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/wallet" element={<WalletPage />} />
-            <Route path="/withdraw" element={<WithdrawPage />} />
-            <Route path="/marketplace" element={<MarketplaceInventoryPage />} />
-            <Route path="/marketplace/add-product" element={<AddProductPage />} />
-            <Route path="/marketplace/product/:id" element={<ProductPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/services" element={<ServicesPage />} />
-            <Route path="/loan-application" element={<LoanApplicationPage />} />
-            <Route path="/my-loans" element={<MyLoansPage />} />
+          {/* Admin Route */}
+          <Route element={<ProtectedRoute redirectTo="/admin/login" />}>
+            <Route path="/admin" element={<AdminDashboardPage />} />
           </Route>
-        </Route>
-      </Routes>
-    </BrowserRouter>
+
+          {/* User Dashboard Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<DashboardLayout />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/plans" element={<AjoPlanPage />} />
+              <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/wallet" element={<WalletPage />} />
+              <Route path="/withdraw" element={<WithdrawPage />} />
+              <Route path="/marketplace" element={<MarketplaceInventoryPage />} />
+              <Route path="/marketplace/add-product" element={<AddProductPage />} />
+              <Route path="/marketplace/product/:id" element={<ProductPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/services" element={<ServicesPage />} />
+              <Route path="/loan-application" element={<LoanApplicationPage />} />
+              <Route path="/my-loans" element={<MyLoansPage />} />
+            </Route>
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }

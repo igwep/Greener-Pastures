@@ -5,12 +5,14 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
 import { useLoginMutation } from '../services/auth/hooks';
+import { useAuth } from '../contexts/AuthContext';
 import { loginSchema, LoginFormData } from '../schemas/auth';
 import { z } from 'zod';
 import { MailIcon, LockIcon, SproutIcon } from 'lucide-react';
 export function LoginPage() {
   const navigate = useNavigate();
   const loginMutation = useLoginMutation();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,8 +52,7 @@ export function LoginPage() {
         password: validatedData.password
       });
 
-      localStorage.setItem('auth_token', res.token);
-      localStorage.setItem('auth_user', JSON.stringify(res.user));
+      login(res.token, res.user);
 
       navigate('/dashboard');
     } catch (error) {

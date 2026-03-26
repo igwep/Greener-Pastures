@@ -28,7 +28,8 @@ import {
   ArrowDownLeftIcon,
   PlusIcon,
 } from "lucide-react";
-import { getStoredUser, getUserFirstName } from "../services/auth/session";
+import { useAuth } from "../contexts/AuthContext";
+import { getUserFirstName } from "../services/auth/session";
 import { useDashboardSummaryQuery } from "../services/dashboard/hooks";
 import { useLocation } from "react-router-dom";
 import { useCreateDepositMutation } from "../services/deposits/hooks";
@@ -61,6 +62,7 @@ const isOnline = () => {
 
 export function DashboardPage() {
   const location = useLocation();
+  const { user: authUser, isAuthenticated } = useAuth();
   const [chartPeriod, setChartPeriod] = useState("30D");
   const [isDepositDialogOpen, setIsDepositDialogOpen] = useState(false);
   const [depositScreenshotUrl, setDepositScreenshotUrl] = useState<
@@ -72,13 +74,16 @@ export function DashboardPage() {
     useState<File | null>(null);
   const [depositFieldErrors, setDepositFieldErrors] = useState<Record<string, string>>({});
   const [depositServerError, setDepositServerError] = useState<string>('');
-  const storedUser = useMemo(() => getStoredUser(), []);
-  const { data: summary, isLoading } = useDashboardSummaryQuery();
+  const storedUser = authUser;
+  const { data: summary, isLoading, isFetching } = useDashboardSummaryQuery(isAuthenticated);
   const { data: loanRepaymentsData } = useLoanRepaymentsQuery();
   const createDepositMutation = useCreateDepositMutation();
 
+  // Show loading state only on initial load, not on refetch
+  const isInitialLoading = isLoading && !isFetching;
+
   // Use stored summary as fallback when query fails
-  const storedSummary = useMemo(() => getStoredDashboardSummary(), []);
+  const storedSummary = getStoredDashboardSummary();
   const isOnlineStatus = useMemo(() => isOnline(), []);
   const effectiveSummary = summary || storedSummary;
 
@@ -429,14 +434,162 @@ export function DashboardPage() {
     >
       {location.pathname === '/marketplace' ? (
         <ProductManagement />
+      ) : isInitialLoading ? (
+        // Loading skeleton while fetching fresh data
+        <div className="space-y-8">
+          {/* Header Skeleton */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <div className="h-8 bg-gray-200 rounded w-1/3 animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/4 animate-pulse"></div>
+            </div>
+            <div className="h-10 bg-gray-200 rounded-xl w-32 animate-pulse"></div>
+          </div>
+
+          {/* Summary Cards Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Wallet Card Skeleton */}
+            <div className="md:col-span-2">
+              <div className="bg-ajo-900 text-white relative overflow-visible flex flex-col justify-between p-8 rounded-3xl border-none shadow-lg">
+                <div className="absolute inset-0 opacity-20 rounded-3xl"
+                  style={{
+                    backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)",
+                    backgroundSize: "24px 24px",
+                  }}
+                ></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-ajo-500 rounded-full blur-[80px] opacity-30 -translate-y-1/2 translate-x-1/3"></div>
+                
+                <div className="relative z-10 flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-gray-600 rounded animate-pulse"></div>
+                    <div className="h-4 bg-gray-600 rounded w-24 animate-pulse"></div>
+                  </div>
+                  <div className="w-24 h-8 flex items-end gap-1 opacity-70">
+                    {[4, 6, 5, 8, 7, 10, 12].map((h, i) => (
+                      <div
+                        key={i}
+                        className="w-full bg-gray-600 rounded-t-sm animate-pulse"
+                        style={{ height: `${h * 8}%` }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="relative z-10 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+                  <div className="space-y-2">
+                    <div className="h-12 bg-gray-600 rounded w-2/3 animate-pulse"></div>
+                    <div className="h-3 bg-gray-600 rounded w-1/2 animate-pulse"></div>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="h-10 bg-gray-600 rounded-xl w-28 animate-pulse"></div>
+                    <div className="h-10 bg-gray-600 rounded-xl w-20 animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Loan Balance Card Skeleton */}
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-10 h-10 bg-red-50 rounded-xl animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+              </div>
+              <div className="space-y-3">
+                <div className="h-8 bg-gray-200 rounded w-24 animate-pulse"></div>
+                <div className="h-3 bg-gray-200 rounded w-full animate-pulse"></div>
+              </div>
+            </div>
+
+            {/* Active Plan Card Skeleton */}
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-10 h-10 bg-blue-50 rounded-xl animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+              </div>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="space-y-2">
+                  <div className="h-5 bg-gray-200 rounded w-20 animate-pulse"></div>
+                  <div className="h-3 bg-gray-200 rounded w-16 animate-pulse"></div>
+                </div>
+              </div>
+              <div className="border-t border-gray-100 pt-4 flex items-center justify-between">
+                <div className="h-3 bg-gray-200 rounded w-12 animate-pulse"></div>
+                <div className="h-6 bg-gray-200 rounded w-16 animate-pulse"></div>
+              </div>
+            </div>
+
+            {/* Total Saved Card Skeleton */}
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-10 h-10 bg-ajo-50 rounded-xl animate-pulse"></div>
+                <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+              </div>
+              <div className="space-y-3">
+                <div className="h-8 bg-gray-200 rounded w-24 animate-pulse"></div>
+                <div className="flex items-center gap-2">
+                  <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                  <div className="h-3 bg-gray-200 rounded w-12 animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Chart and Activity Skeleton */}
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Chart Skeleton */}
+            <div className="lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <div className="h-6 bg-gray-200 rounded w-32 animate-pulse"></div>
+                    <div className="h-4 bg-gray-200 rounded w-48 animate-pulse"></div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="h-8 bg-gray-200 rounded w-12 animate-pulse"></div>
+                    <div className="h-8 bg-gray-200 rounded w-12 animate-pulse"></div>
+                    <div className="h-8 bg-gray-200 rounded w-12 animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="h-[300px] flex items-end justify-around">
+                  {[1, 2, 3, 4, 5, 6, 7].map((height) => (
+                    <div 
+                      key={height} 
+                      className="w-8 bg-gray-200 rounded-md animate-pulse"
+                      style={{ height: `${height * 30}px` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Activity Skeleton */}
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+              <div className="space-y-6">
+                <div className="h-6 bg-gray-200 rounded w-32 animate-pulse"></div>
+                <div className="space-y-4">
+                  {[1, 2, 3].map((item) => (
+                    <div key={item} className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-gray-200 rounded-xl animate-pulse"></div>
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse"></div>
+                      </div>
+                      <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       ) : (
         <>
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-ink tracking-tight">
-                {getGreeting()}
-                {firstName ? `, ${firstName}` : ""} 👋
+                {firstName ? `${getGreeting()}, ${firstName}` : getGreeting()} 👋
                 {!isOnlineStatus && (
                   <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
                     Offline Mode

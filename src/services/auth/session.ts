@@ -7,8 +7,12 @@ export function getStoredToken(): string | null {
 
 export function clearSession() {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem('auth_token');
-  localStorage.removeItem('auth_user');
+  
+  // Clear all localStorage items
+  localStorage.clear();
+  
+  // Clear all sessionStorage items
+  sessionStorage.clear();
 }
 
 export function getStoredUser(): AuthUser | null {

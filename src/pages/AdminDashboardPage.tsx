@@ -22,7 +22,7 @@ import {
   LogOutIcon,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { clearSession } from "../services/auth/session";
+import { useAuth } from "../contexts/AuthContext";
 
 import { UserManagement } from "./admin/UserManagement";
 import { Overview } from "./admin/Overview";
@@ -35,6 +35,7 @@ import { Marketplace } from "./admin/Marketplace";
 
 export function AdminDashboardPage() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState<
     | "overview"
     | "users"
@@ -52,7 +53,7 @@ export function AdminDashboardPage() {
   };
 
   const handleConfirmLogout = () => {
-    clearSession();
+    logout();
     navigate("/admin/login");
   };
 
