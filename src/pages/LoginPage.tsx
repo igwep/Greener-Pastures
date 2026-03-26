@@ -5,6 +5,8 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
 import { useLoginMutation } from '../services/auth/hooks';
+import { loginSchema, LoginFormData } from '../schemas/auth';
+import { z } from 'zod';
 import { MailIcon, LockIcon, SproutIcon } from 'lucide-react';
 export function LoginPage() {
   const navigate = useNavigate();
@@ -12,19 +14,80 @@ export function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [serverError, setServerError] = useState<string>('');
+
+  // Clear error when user starts typing
+  const clearFieldError = (field: string) => {
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => ({ ...prev, [field]: '' }));
+    }
+    // Also clear server error when user starts typing
+    if (serverError) {
+      setServerError('');
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const res = await loginMutation.mutateAsync({
-      email: email || undefined,
-      password
-    });
+    // Clear previous errors
+    setFieldErrors({});
+    setServerError('');
 
-    localStorage.setItem('auth_token', res.token);
-    localStorage.setItem('auth_user', JSON.stringify(res.user));
+    try {
+      // Validate form data with Zod
+      const formData: LoginFormData = {
+        email: email || '',
+        password
+      };
 
-    navigate('/dashboard');
+      const validatedData = loginSchema.parse(formData);
+
+      // Submit login with validated data
+      const res = await loginMutation.mutateAsync({
+        email: validatedData.email,
+        password: validatedData.password
+      });
+
+      localStorage.setItem('auth_token', res.token);
+      localStorage.setItem('auth_user', JSON.stringify(res.user));
+
+      navigate('/dashboard');
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Handle validation errors
+        const errors: Record<string, string> = {};
+        error.issues.forEach((err: any) => {
+          if (err.path.length > 0) {
+            errors[err.path[0]] = err.message;
+          }
+        });
+        setFieldErrors(errors);
+      } else if (error instanceof Error) {
+        // Handle server errors
+        const errorMessage = error.message.toLowerCase();
+        
+        if (errorMessage.includes('invalid credentials') || 
+            errorMessage.includes('incorrect password') ||
+            errorMessage.includes('user not found') ||
+            errorMessage.includes('email or password is incorrect')) {
+          setServerError('Invalid email or password. Please check your credentials and try again.');
+        } else if (errorMessage.includes('account not verified') ||
+                   errorMessage.includes('email not verified')) {
+          setServerError('Your account has not been verified. Please check your email for verification instructions.');
+        } else if (errorMessage.includes('account suspended') ||
+                   errorMessage.includes('account blocked')) {
+          setServerError('Your account has been suspended. Please contact support for assistance.');
+        } else {
+          setServerError('Login failed. Please check your credentials and try again.');
+        }
+      } else {
+        // Handle other errors (network errors, etc.)
+        setServerError('An unexpected error occurred. Please try again.');
+        console.error('Login error:', error);
+      }
+    }
   };
   return (
     <div className="min-h-screen bg-surface flex">
@@ -116,10 +179,13 @@ export function LoginPage() {
                   placeholder="you@example.com"
                   icon={<MailIcon className="w-5 h-5" />}
                   value={email}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setEmail(e.target.value)
-                  }
-                  required />
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setEmail(e.target.value);
+                    clearFieldError('email');
+                  }}
+                  required
+                  error={fieldErrors.email}
+                />
                 
 
                 <div>
@@ -129,10 +195,13 @@ export function LoginPage() {
                     placeholder="••••••••"
                     icon={<LockIcon className="w-5 h-5" />}
                     value={password}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setPassword(e.target.value)
-                    }
-                    required />
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      setPassword(e.target.value);
+                      clearFieldError('password');
+                    }}
+                    required
+                    error={fieldErrors.password}
+                  />
                   
                   <div className="flex justify-end mt-2">
                     <a
@@ -144,7 +213,23 @@ export function LoginPage() {
                   </div>
                 </div>
 
-                {loginMutation.error && (
+                {serverError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-sm text-red-600">{serverError}</p>
+                    {serverError.toLowerCase().includes('not verified') && (
+                      <p className="text-sm text-red-600 mt-2">
+                        Need to verify your account?{' '}
+                        <Link
+                          to="/register"
+                          className="font-semibold text-red-700 hover:text-red-800 underline">
+                          Register again
+                        </Link>
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {loginMutation.error && !serverError && (
                   <p className="text-sm text-red-600">
                     {loginMutation.error.message}
                   </p>

@@ -10,7 +10,14 @@ import {
 } from "lucide-react";
 
 // StatCard component - recreated based on the usage in AdminDashboardPage
-const StatCard = ({ icon: Icon, label, value, onClick }) => (
+interface StatCardProps {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  onClick?: () => void;
+}
+
+const StatCard = ({ icon: Icon, label, value, onClick }: StatCardProps) => (
   <Card
     className={`flex items-center gap-5 p-6 rounded-2xl border border-gray-100 shadow-sm ${onClick ? "cursor-pointer" : ""}`}
     onClick={onClick}

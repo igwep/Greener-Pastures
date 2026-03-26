@@ -297,6 +297,7 @@ export type AdminAllLoan = {
     id: string;
     firstName: string;
     lastName: string;
+    email: string;
   };
   loanType: {
     id: string;
@@ -356,6 +357,25 @@ export type DisburseLoanResponse = {
 
 export async function disburseLoan(loanApplicationId: string, data: DisburseLoanRequest, signal?: AbortSignal) {
   return apiRequest<DisburseLoanResponse>(`/api/v1/loans/admin/applications/${loanApplicationId}/disburse`, {
+    method: 'POST',
+    body: data,
+    signal,
+  });
+}
+
+export type RejectLoanRequest = {
+  note?: string;
+};
+
+export type RejectLoanResponse = {
+  loanApplication: {
+    id: string;
+    status: 'REJECTED';
+  };
+};
+
+export async function rejectLoan(loanApplicationId: string, data: RejectLoanRequest, signal?: AbortSignal) {
+  return apiRequest<RejectLoanResponse>(`/api/v1/loans/admin/applications/${loanApplicationId}/reject`, {
     method: 'POST',
     body: data,
     signal,

@@ -11,8 +11,9 @@ import { AjoPlanPage } from "./pages/AjoPlanPage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { WalletPage } from "./pages/WalletPage";
 import { WithdrawPage } from "./pages/WithdrawPage";
-import { MarketplacePage } from "./pages/MarketplacePage";
 import { ProductPage } from "./pages/ProductPage";
+import { MarketplaceInventoryPage } from "./pages/MarketplaceInventoryPage";
+import { AddProductPage } from "./pages/AddProductPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { ServicesPage } from "./pages/ServicesPage";
 import { LoanApplicationPage } from "./pages/LoanApplicationPage";
@@ -43,8 +44,9 @@ export function App() {
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/wallet" element={<WalletPage />} />
             <Route path="/withdraw" element={<WithdrawPage />} />
-            <Route path="/marketplace" element={<MarketplacePage />} />
-            <Route path="/product/:id" element={<ProductPage />} />
+            <Route path="/marketplace" element={<MarketplaceInventoryPage />} />
+            <Route path="/marketplace/add-product" element={<AddProductPage />} />
+            <Route path="/marketplace/product/:id" element={<ProductPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/loan-application" element={<LoanApplicationPage />} />

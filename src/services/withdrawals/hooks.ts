@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   createWithdrawalRequest,
   getUserWithdrawals,
@@ -9,8 +9,15 @@ import {
 import { ApiError } from '../apiClient';
 
 export function useCreateWithdrawalMutation() {
+  const queryClient = useQueryClient();
+  
   return useMutation<CreateWithdrawalResponse, ApiError, WithdrawalRequest>({
     mutationFn: createWithdrawalRequest,
+    onSuccess: async () => {
+      // Invalidate queries to refresh data
+      await queryClient.invalidateQueries({ queryKey: ['withdrawals', 'user'] });
+      await queryClient.invalidateQueries({ queryKey: ['dashboardSummary'] });
+    },
   });
 }
 

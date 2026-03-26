@@ -114,7 +114,7 @@ export function Payments() {
                   )}
                   <Button
                     size="sm"
-                    variant="outline"
+                    variant="secondary"
                     onClick={() => handleApprove(row.id)}
                   >
                     Approve

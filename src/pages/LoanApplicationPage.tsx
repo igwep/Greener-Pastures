@@ -18,6 +18,8 @@ import {
   useMyLoansQuery,
 } from "../services/loans/hooks";
 import { uploadImageToCloudinary } from "../services/cloudinary";
+import { loanApplicationSchema, LoanApplicationFormData } from "../schemas/auth";
+import { z } from "zod";
 
 export function LoanApplicationPage() {
   const location = useLocation();
@@ -32,10 +34,23 @@ export function LoanApplicationPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPendingModal, setShowPendingModal] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [serverError, setServerError] = useState<string>('');
+
+  // Clear error when user starts typing
+  const clearFieldError = (field: string) => {
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => ({ ...prev, [field]: '' }));
+    }
+    // Also clear server error when user starts typing
+    if (serverError) {
+      setServerError('');
+    }
+  };
 
   const { data: loanTypesData, isLoading: isLoanTypesLoading } =
     useLoanTypesQuery();
-  const { data: myLoansData } = useMyLoansQuery();
+  const { data: myLoansData, isLoading: isMyLoansLoading } = useMyLoansQuery();
   const applyMutation = useApplyLoanMutation();
 
   const loanTypes = useMemo(
@@ -43,17 +58,31 @@ export function LoanApplicationPage() {
     [loanTypesData],
   );
 
-  // Check if user has pending loan applications
-  const hasPendingLoan = useMemo(() => {
-    return myLoansData?.loanApplications?.some(
-      loan => loan.status === 'PENDING'
+  // Check if user has any active loan (pending, approved, or with balance)
+  const hasActiveLoan = useMemo(() => {
+    const hasPending = myLoansData?.loanApplications?.some(
+      loan => loan.status === 'PENDING' || loan.status === 'APPROVED'
     ) || false;
+    const hasBalance = Number(myLoansData?.loanBalance?.amountNaira ?? 0) > 0;
+    return hasPending || hasBalance;
   }, [myLoansData]);
 
-  // Check if user has existing loan balance
-  const hasLoanBalance = useMemo(() => {
-    const loanBalance = Number(myLoansData?.loanBalance?.amountNaira ?? 0);
-    return loanBalance > 0;
+  // Get the status of the active loan for messaging
+  const activeLoanStatus = useMemo(() => {
+    const pendingLoan = myLoansData?.loanApplications?.find(
+      loan => loan.status === 'PENDING'
+    );
+    if (pendingLoan) return 'PENDING';
+    
+    const approvedLoan = myLoansData?.loanApplications?.find(
+      loan => loan.status === 'APPROVED'
+    );
+    if (approvedLoan) return 'APPROVED';
+    
+    const hasBalance = Number(myLoansData?.loanBalance?.amountNaira ?? 0) > 0;
+    if (hasBalance) return 'ACTIVE';
+    
+    return null;
   }, [myLoansData]);
 
   useEffect(() => {
@@ -73,81 +102,118 @@ export function LoanApplicationPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
+      // File validation using Zod-like logic
       if (!selectedFile.type.startsWith("image/")) {
-        alert("Please upload an image file (PNG, JPG, etc.)");
+        setFieldErrors(prev => ({ ...prev, formUrl: "Please upload an image file (PNG, JPG, etc.)" }));
         return;
       }
+      
+      if (selectedFile.size > 5 * 1024 * 1024) {
+        setFieldErrors(prev => ({ ...prev, formUrl: "File size must be less than 5MB" }));
+        return;
+      }
+
       setFile(selectedFile);
       const reader = new FileReader();
       reader.onloadend = () => {
         setFilePreview(reader.result as string);
       };
       reader.readAsDataURL(selectedFile);
+      
+      // Clear form error when valid file is selected
+      if (fieldErrors.formUrl) {
+        clearFieldError('formUrl');
+      }
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check if user already has a pending loan application
-    if (hasPendingLoan) {
+    // Clear previous errors
+    setFieldErrors({});
+    setServerError('');
+
+    // Check if user already has an active loan
+    if (hasActiveLoan) {
       setShowPendingModal(true);
       return;
     }
 
-    if (!selectedLoanTypeId) {
-      alert("Please select a loan type.");
-      return;
-    }
-
-    if (!amount || Number(amount) <= 0) {
-      alert("Please enter a valid loan amount.");
-      return;
-    }
-
-    if (selectedLoanType) {
-      const min = Number(selectedLoanType.minAmountNaira ?? 0);
-      const max = Number(selectedLoanType.maxAmountNaira);
-      const req = Number(amount);
-      if (req < min || req > max) {
-        alert(
-          `Amount must be between ₦${min.toLocaleString()} and ₦${max.toLocaleString()} for this loan type.`,
-        );
-        return;
-      }
-    }
-
-    if (!reason || reason.length < 5) {
-      alert("Please provide a reason (at least 5 characters).");
-      return;
-    }
-
-    if (!file) {
-      alert("Please upload required signed document image.");
-      return;
-    }
-
-    // Set loading state immediately
-    setIsSubmitting(true);
-
     try {
-      // 1. Upload to Cloudinary
-      const cloudinaryRes = await uploadImageToCloudinary(file);
-
-      // 2. Submit to backend
-      await applyMutation.mutateAsync({
+      // Validate form data with Zod
+      const formData: LoanApplicationFormData = {
         loanTypeId: selectedLoanTypeId,
         requestedAmountNaira: amount,
         reason,
+        formUrl: filePreview || ''
+      };
+
+      const validatedData = loanApplicationSchema.parse(formData);
+
+      // Additional business logic validation
+      if (selectedLoanType) {
+        const min = Number(selectedLoanType.minAmountNaira ?? 0);
+        const max = Number(selectedLoanType.maxAmountNaira);
+        const req = Number(validatedData.requestedAmountNaira);
+        if (req < min || req > max) {
+          setServerError(`Amount must be between ₦${min.toLocaleString()} and ₦${max.toLocaleString()} for this loan type.`);
+          return;
+        }
+      }
+
+      // Set loading state immediately
+      setIsSubmitting(true);
+
+      // 1. Upload to Cloudinary
+      const cloudinaryRes = await uploadImageToCloudinary(file!);
+
+      // 2. Submit to backend
+      await applyMutation.mutateAsync({
+        loanTypeId: validatedData.loanTypeId,
+        requestedAmountNaira: validatedData.requestedAmountNaira,
+        reason: validatedData.reason,
         formUrl: cloudinaryRes.secure_url,
       });
 
       setIsSuccess(true);
-    } catch (error: any) {
-      console.error("Loan application failed:", error);
-      alert(
-        error.message || "Failed to submit loan application. Please try again.",
-      );
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Handle validation errors
+        const errors: Record<string, string> = {};
+        error.issues.forEach((err: any) => {
+          if (err.path.length > 0) {
+            errors[err.path[0]] = err.message;
+          }
+        });
+        setFieldErrors(errors);
+      } else if (error instanceof Error) {
+        // Handle server errors
+        const errorMessage = error.message.toLowerCase();
+        
+        if (errorMessage.includes('loan limit') || 
+            errorMessage.includes('maximum loan')) {
+          setServerError('You have reached your maximum loan limit. Please repay existing loans first.');
+        } else if (errorMessage.includes('income verification') ||
+                   errorMessage.includes('income required')) {
+          setServerError('Income verification required. Please update your profile information.');
+        } else if (errorMessage.includes('credit score') ||
+                   errorMessage.includes('poor credit')) {
+          setServerError('Loan application declined due to credit score. Please improve your repayment history.');
+        } else if (errorMessage.includes('document verification') ||
+                   errorMessage.includes('invalid document')) {
+          setServerError('Document verification failed. Please upload a clear, valid signed document.');
+        } else if (errorMessage.includes('duplicate application') ||
+                   errorMessage.includes('already submitted')) {
+          setServerError('You already have a pending loan application. Please wait for it to be processed.');
+        } else {
+          setServerError('Failed to submit loan application. Please try again later.');
+        }
+      } else {
+        // Handle other errors (network errors, etc.)
+        setServerError('An unexpected error occurred. Please try again.');
+        console.error("Loan application failed:", error);
+      }
     } finally {
       // Always reset loading state
       setIsSubmitting(false);
@@ -159,33 +225,58 @@ export function LoanApplicationPage() {
     alert("Downloading application form...");
   };
 
-  // If user has existing loan balance, show message instead of application form
-  if (hasLoanBalance) {
+  // Show loading state while checking for pending loans
+  if (isMyLoansLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
         <div className="w-20 h-20 bg-ajo-50 text-ajo-600 rounded-full flex items-center justify-center mb-6">
-          <AlertCircleIcon className="w-12 h-12" />
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-ajo-600 border-t-transparent"></div>
         </div>
         <div>
           <h1 className="text-3xl font-bold text-ink mb-2">
-            Active Loan Balance
+            Checking Loan Status
           </h1>
           <p className="text-ink-secondary max-w-md">
-            You have an existing loan balance. Please repay your current loan before applying for a new one.
+            Please wait while we check your loan application status...
           </p>
         </div>
-        <Button
-          className="mt-8 rounded-xl"
-          onClick={() => window.history.back()}
-        >
-          Back to Services
-        </Button>
       </div>
     );
   }
 
-  // If user has pending loan, show pending modal instead of application form
-  if (hasPendingLoan) {
+  // If user has an active loan, show appropriate message instead of application form
+  if (hasActiveLoan) {
+    const getLoanMessage = () => {
+      switch (activeLoanStatus) {
+        case 'PENDING':
+          return {
+            title: "Loan Application Pending",
+            message: "You already have a loan application in process. You can only have one active loan at a time.",
+            subtext: "Application under review"
+          };
+        case 'APPROVED':
+          return {
+            title: "Loan Approved", 
+            message: "You have an approved loan. You can only have one active loan at a time.",
+            subtext: "Loan ready for disbursement"
+          };
+        case 'ACTIVE':
+          return {
+            title: "Active Loan Balance",
+            message: "You have an existing loan balance. You can only have one active loan at a time.",
+            subtext: "Loan currently active"
+          };
+        default:
+          return {
+            title: "Active Loan",
+            message: "You have an active loan. You can only have one active loan at a time.",
+            subtext: "Loan in progress"
+          };
+      }
+    };
+
+    const loanMessage = getLoanMessage();
+
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
         <div className="w-20 h-20 bg-ajo-50 text-ajo-600 rounded-full flex items-center justify-center mb-6">
@@ -193,11 +284,15 @@ export function LoanApplicationPage() {
         </div>
         <div>
           <h1 className="text-3xl font-bold text-ink mb-2">
-            Loan Application Pending
+            {loanMessage.title}
           </h1>
-          <p className="text-ink-secondary max-w-md">
-            You already have a loan application in PENDING status. Please wait for it to be processed before submitting a new one.
+          <p className="text-ink-secondary max-w-md mb-4">
+            {loanMessage.message}
           </p>
+          <div className="flex items-center justify-center gap-2 text-sm text-ajo-600">
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-ajo-600 border-t-transparent"></div>
+            <span>{loanMessage.subtext}</span>
+          </div>
         </div>
         <Button
           className="mt-8 rounded-xl"
@@ -268,8 +363,13 @@ export function LoanApplicationPage() {
                 <div className="relative">
                   <select
                     value={selectedLoanTypeId}
-                    onChange={(e) => setSelectedLoanTypeId(e.target.value)}
-                    className="w-full h-12 px-4 rounded-xl border border-gray-200 bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-ajo-500 transition-all text-ink"
+                    onChange={(e) => {
+                      setSelectedLoanTypeId(e.target.value);
+                      clearFieldError('loanTypeId');
+                    }}
+                    className={`w-full h-12 px-4 rounded-xl border bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-ajo-500 transition-all text-ink ${
+                      fieldErrors.loanTypeId ? 'border-red-500' : 'border-gray-200'
+                    }`}
                     required
                   >
                     <option value="" disabled>
@@ -287,6 +387,9 @@ export function LoanApplicationPage() {
                   </select>
                   <ChevronDownIcon className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted pointer-events-none" />
                 </div>
+                {fieldErrors.loanTypeId && (
+                  <p className="mt-2 text-sm text-red-600">{fieldErrors.loanTypeId}</p>
+                )}
                 {selectedLoanType && (
                   <p className="mt-2 text-xs text-ink-secondary flex items-center gap-1">
                     <AlertCircleIcon className="w-3 h-3" />
@@ -308,9 +411,13 @@ export function LoanApplicationPage() {
                   type="number"
                   placeholder="e.g. 50,000"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  onChange={(e) => {
+                    setAmount(e.target.value);
+                    clearFieldError('requestedAmountNaira');
+                  }}
                   className="w-full h-12 text-lg font-medium"
                   required
+                  error={fieldErrors.requestedAmountNaira}
                 />
               </div>
 
@@ -321,10 +428,18 @@ export function LoanApplicationPage() {
                 <textarea
                   placeholder="Please provide a brief explanation for the loan request..."
                   value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  className="w-full min-h-[120px] p-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-ajo-500 transition-all"
+                  onChange={(e) => {
+                    setReason(e.target.value);
+                    clearFieldError('reason');
+                  }}
+                  className={`w-full min-h-[120px] p-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-ajo-500 transition-all ${
+                    fieldErrors.reason ? 'border-red-500' : 'border-gray-200'
+                  }`}
                   required
                 />
+                {fieldErrors.reason && (
+                  <p className="mt-2 text-sm text-red-600">{fieldErrors.reason}</p>
+                )}
               </div>
 
               <div>
@@ -376,6 +491,32 @@ export function LoanApplicationPage() {
                   )}
                 </div>
               </div>
+
+              {fieldErrors.formUrl && (
+                <p className="mt-2 text-sm text-red-600">{fieldErrors.formUrl}</p>
+              )}
+
+              {serverError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
+                  <p className="text-sm text-red-600">{serverError}</p>
+                  {serverError.toLowerCase().includes('income verification') && (
+                    <p className="text-sm text-red-600 mt-2">
+                      Need to update your profile?{' '}
+                      <button
+                        type="button"
+                        onClick={() => window.location.href = '/profile'}
+                        className="font-semibold text-red-700 hover:text-red-800 underline">
+                          Update Profile
+                        </button>
+                      </p>
+                  )}
+                  {serverError.toLowerCase().includes('document verification') && (
+                    <p className="text-sm text-red-600 mt-2">
+                      Please upload a clear, high-quality image of your signed document.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <Button
                 type="submit"

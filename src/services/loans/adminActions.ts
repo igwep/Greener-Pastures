@@ -45,6 +45,7 @@ export async function listLoanApplicationsAdmin(params: ListLoanApplicationsPara
 export interface ApproveLoanRequest {
   amountNaira: number | string;
   note?: string;
+  [key: string]: unknown;
 }
 
 export async function approveLoanAdmin(id: string, payload: ApproveLoanRequest) {
@@ -56,6 +57,7 @@ export async function approveLoanAdmin(id: string, payload: ApproveLoanRequest) 
 
 export interface DisburseLoanRequest {
   note?: string;
+  [key: string]: unknown;
 }
 
 export async function disburseLoanAdmin(id: string, payload: DisburseLoanRequest) {
@@ -65,7 +67,7 @@ export async function disburseLoanAdmin(id: string, payload: DisburseLoanRequest
   });
 }
 
-export async function rejectLoanAdmin(id: string, payload: { note?: string }) {
+export async function rejectLoanAdmin(id: string, payload: { note?: string; [key: string]: unknown }) {
   return apiRequest<{ success: boolean }>(`/api/v1/loans/admin/applications/${id}/reject`, {
     method: 'POST',
     body: payload,

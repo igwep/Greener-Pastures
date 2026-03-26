@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
-import { useAdminAllLoansQuery, useApproveLoanMutation, useDisburseLoanMutation } from "../../services/admin/hooks";
+import { useAdminAllLoansQuery, useApproveLoanMutation, useDisburseLoanMutation, useRejectLoanMutation } from "../../services/admin/hooks";
 import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 export function Loans() {
@@ -18,6 +18,7 @@ export function Loans() {
   const { data: loansData, isLoading: isLoansLoading } = useAdminAllLoansQuery();
   const approveLoanMutation = useApproveLoanMutation();
   const disburseLoanMutation = useDisburseLoanMutation();
+  const rejectLoanMutation = useRejectLoanMutation();
 
   const loans = useMemo(() => {
     if (!loansData?.loans) return [];
@@ -64,11 +65,19 @@ export function Loans() {
 
   const handleApproveLoanSubmit = async () => {
     if (!approveLoanId || !approveAmount) return;
+    
+    // Validate that approveAmount is a valid number
+    const numericAmount = Number(approveAmount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      showErrorToast(new Error("Please enter a valid amount"), "Invalid amount");
+      return;
+    }
+    
     try {
       console.log('Approving loan:', { approveLoanId, approveAmount, approveNote });
       
       // Only include note if it has a value
-      const requestData: any = { approvedAmountNaira: Number(approveAmount) };
+      const requestData: any = { approvedAmountNaira: approveAmount };
       if (approveNote.trim()) {
         requestData.note = approveNote;
       }
@@ -129,7 +138,7 @@ export function Loans() {
     const note = window.prompt("Enter rejection reason:");
     if (note === null) return;
     try {
-      await rejectLoanMutation.mutateAsync({ id, payload: { note } });
+      await rejectLoanMutation.mutateAsync({ loanApplicationId: id, data: { note } });
       showSuccessToast("Loan rejected successfully!");
     } catch (error) {
       showErrorToast(error, "Failed to reject loan.");
@@ -355,11 +364,13 @@ export function Loans() {
                   Approved Amount (₦)
                 </label>
                 <input
-                  type="text"
+                  type="number"
                   value={approveAmount}
                   onChange={(e) => setApproveLoanAmount(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter approved amount"
+                  min="0"
+                  step="0.01"
                 />
               </div>
               <div>

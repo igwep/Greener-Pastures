@@ -40,12 +40,14 @@ export interface ApplyLoanRequest {
   requestedAmountNaira: number | string;
   reason: string;
   formUrl: string;
+  [key: string]: unknown;
 }
 
 export interface RepayLoanRequest {
   amountNaira: number | string;
   transferReference?: string;
   proofUrl: string;
+  [key: string]: unknown;
 }
 
 export interface LoanRepayment {

@@ -7,8 +7,13 @@ export function useDashboardSummaryQuery() {
     queryKey: ['dashboardSummary'],
     queryFn: ({ signal }) => getDashboardSummary(signal),
     retry: (failureCount, error) => {
-      if (error instanceof ApiError && error.status === 401) return false;
+      if (error instanceof ApiError) {
+        // Don't retry for authentication errors or 404s
+        if (error.status === 401 || error.status === 404) return false;
+      }
       return failureCount < 2;
-    }
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 }

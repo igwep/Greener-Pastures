@@ -110,7 +110,7 @@ export function AdminDashboardPage() {
             ))}
           </div>
         </nav>
-        
+
         {/* Logout Button */}
         <div className="p-4 border-t border-gray-800 shrink-0">
           <button
@@ -143,6 +143,8 @@ export function AdminDashboardPage() {
               {activeTab === "deposits" && "Deposits Management"}
               {activeTab === "withdrawals" && "Withdrawals Management"}
               {activeTab === "repayments" && "Loan Repayments"}
+              {activeTab === "settings" && "Settings"}
+              {activeTab === "marketplace" && "Marketplace Management"}
             </h1>
           </div>
 
@@ -164,16 +166,10 @@ export function AdminDashboardPage() {
         title="Confirm Logout"
         footer={
           <div className="flex gap-3 justify-end">
-            <Button
-              variant="ghost"
-              onClick={handleCancelLogout}
-            >
+            <Button variant="ghost" onClick={handleCancelLogout}>
               Cancel
             </Button>
-            <Button
-              variant="danger"
-              onClick={handleConfirmLogout}
-            >
+            <Button variant="danger" onClick={handleConfirmLogout}>
               Logout
             </Button>
           </div>
@@ -185,7 +181,9 @@ export function AdminDashboardPage() {
               <LogOutIcon className="w-6 h-6 text-red-600" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Are you sure you want to logout?</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Are you sure you want to logout?
+              </h3>
               <p className="text-gray-600 text-sm mt-1">
                 You will need to login again to access the admin dashboard.
               </p>

@@ -1,5 +1,6 @@
 import React, { Children } from 'react';
 import { Link } from 'react-router-dom';
+import { PublicLayout } from '../components/layout/PublicLayout';
 import { motion } from 'framer-motion';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -42,49 +43,7 @@ export function LandingPage() {
     }
   };
   return (
-    <div className="min-h-screen bg-surface font-sans selection:bg-ajo-200 selection:text-ajo-900 overflow-x-hidden">
-      {/* Navbar */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-ajo-600 rounded-xl flex items-center justify-center shadow-sm">
-              <SproutIcon className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-2xl tracking-tight text-ink">
-              Greener Pastures
-            </span>
-          </div>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-ink-secondary">
-            <a
-              href="#how-it-works"
-              className="hover:text-ajo-600 transition-colors">
-              
-              How it Works
-            </a>
-            <a href="#plans" className="hover:text-ajo-600 transition-colors">
-              Plans
-            </a>
-            <a
-              href="#marketplace"
-              className="hover:text-ajo-600 transition-colors">
-              
-              Marketplace
-            </a>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link
-              to="/login"
-              className="text-sm font-medium text-ink hover:text-ajo-600 transition-colors hidden sm:block">
-              
-              Sign In
-            </Link>
-            <Link to="/register">
-              <Button className="rounded-xl">Start Growing</Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
+    <PublicLayout>
       {/* Hero Section */}
       <section className="md:pt-16 pt-6 pb-32 px-4 overflow-hidden relative">
         {/* Decorative background elements */}
@@ -746,6 +705,6 @@ export function LandingPage() {
           </div>
         </div>
       </footer>
-    </div>);
-
+    </PublicLayout>
+  );
 }

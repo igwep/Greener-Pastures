@@ -24,8 +24,10 @@ import {
   type RejectRepaymentRequest,
   approveLoan,
   disburseLoan,
+  rejectLoan,
   type ApproveLoanRequest,
   type DisburseLoanRequest,
+  type RejectLoanRequest,
   getAdminWithdrawals,
   approveWithdrawal,
   rejectWithdrawal,
@@ -199,6 +201,17 @@ export function useDisburseLoanMutation() {
   const qc = useQueryClient();
   return useMutation<any, ApiError, { loanApplicationId: string; data: DisburseLoanRequest }>({
     mutationFn: ({ loanApplicationId, data }) => disburseLoan(loanApplicationId, data),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ['admin', 'loans'] });
+      await qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+    },
+  });
+}
+
+export function useRejectLoanMutation() {
+  const qc = useQueryClient();
+  return useMutation<any, ApiError, { loanApplicationId: string; data: RejectLoanRequest }>({
+    mutationFn: ({ loanApplicationId, data }) => rejectLoan(loanApplicationId, data),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ['admin', 'loans'] });
       await qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });

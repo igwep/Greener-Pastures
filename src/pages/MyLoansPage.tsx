@@ -24,7 +24,9 @@ import {
 import { useMyLoansQuery, useRepayLoanMutation } from '../services/loans/hooks';
 import { useDashboardSummaryQuery } from '../services/dashboard/hooks';
 import { uploadImageToCloudinary } from '../services/cloudinary';
-import { MetricCardSkeleton } from '../components/ui/Skeleton';
+import { loanRepaymentSchema, LoanRepaymentFormData } from '../schemas/auth';
+import { z } from 'zod';
+import { Skeleton } from '../components/ui/Skeleton';
 
 export function MyLoansPage() {
   const { data, isLoading } = useMyLoansQuery();
@@ -34,6 +36,18 @@ export function MyLoansPage() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  // Clear error when user starts typing
+  const clearFieldError = (field: string) => {
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => ({ ...prev, [field]: '' }));
+    }
+    // Also clear server error when user starts typing
+    if (errorMessage) {
+      setErrorMessage('');
+    }
+  };
 
   const transferAccount = summary?.transferAccount?.account ?? null;
 
@@ -46,49 +60,61 @@ export function MyLoansPage() {
   const loanApplications = data?.loanApplications ?? [];
   const loanBalance = Number(data?.loanBalance?.amountNaira ?? 0);
 
-  console.log("[MyLoansPage] loanApplications:", loanApplications);
-  console.log("[MyLoansPage] loanBalance:", loanBalance);
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
+      // File validation using Zod-like logic
       if (!selectedFile.type.startsWith("image/")) {
-        alert("Please upload an image file (PNG, JPG, etc.)");
+        setFieldErrors(prev => ({ ...prev, proofUrl: "Please upload an image file (PNG, JPG, etc.)" }));
         return;
       }
+      
+      if (selectedFile.size > 5 * 1024 * 1024) {
+        setFieldErrors(prev => ({ ...prev, proofUrl: "File size must be less than 5MB" }));
+        return;
+      }
+
       setRepayFile(selectedFile);
       const reader = new FileReader();
       reader.onloadend = () => {
         setFilePreview(reader.result as string);
       };
       reader.readAsDataURL(selectedFile);
+      
+      // Clear form error when valid file is selected
+      if (fieldErrors.proofUrl) {
+        clearFieldError('proofUrl');
+      }
     }
   };
 
   const handleRepaySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!repayAmount || Number(repayAmount) <= 0) {
-      setErrorMessage('Please enter a valid amount.');
-      setShowErrorModal(true);
-      return;
-    }
-    if (!repayFile) {
-      setErrorMessage('Please upload proof of payment.');
-      setShowErrorModal(true);
-      return;
-    }
 
-    // Set loading state immediately
-    setIsSubmitting(true);
+    // Clear previous errors
+    setFieldErrors({});
+    setErrorMessage('');
 
     try {
-      // Upload to Cloudinary
-      const cloudinaryRes = await uploadImageToCloudinary(repayFile);
-      
-      // Submit the repayment
-      await repayMutation.mutateAsync({
+      // Validate form data with Zod
+      const formData: LoanRepaymentFormData = {
         amountNaira: repayAmount,
-        transferReference: repayReference,
+        transferReference: repayReference || undefined,
+        proofUrl: repayFilePreview || ''
+      };
+
+      const validatedData = loanRepaymentSchema.parse(formData);
+
+      // Set loading state immediately
+      setIsSubmitting(true);
+
+      // Upload to Cloudinary
+      const cloudinaryRes = await uploadImageToCloudinary(repayFile!);
+      
+      // Submit to backend
+      await repayMutation.mutateAsync({
+        amountNaira: validatedData.amountNaira,
+        transferReference: validatedData.transferReference,
         proofUrl: cloudinaryRes.secure_url
       });
       
@@ -99,9 +125,40 @@ export function MyLoansPage() {
       setRepayFile(null);
       setFilePreview(null);
       setShowSuccessModal(true);
-    } catch (error: any) {
-      setErrorMessage(error.message || 'Failed to submit repayment. Please try again.');
-      setShowErrorModal(true);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Handle validation errors
+        const errors: Record<string, string> = {};
+        error.issues.forEach((err: any) => {
+          if (err.path.length > 0) {
+            errors[err.path[0]] = err.message;
+          }
+        });
+        setFieldErrors(errors);
+      } else if (error instanceof Error) {
+        // Handle server errors
+        const errorMessage = error.message.toLowerCase();
+        
+        if (errorMessage.includes('invalid proof') || 
+            errorMessage.includes('invalid screenshot')) {
+          setErrorMessage('Invalid payment proof. Please upload a clear screenshot of your payment.');
+        } else if (errorMessage.includes('duplicate repayment') ||
+                   errorMessage.includes('already processed')) {
+          setErrorMessage('This repayment appears to have already been processed. Please check your loan history.');
+        } else if (errorMessage.includes('insufficient balance') ||
+                   errorMessage.includes('balance too low')) {
+          setErrorMessage('Insufficient balance. Please check your wallet and try again.');
+        } else if (errorMessage.includes('repayment limit') ||
+                   errorMessage.includes('daily limit')) {
+          setErrorMessage('You have reached your daily repayment limit. Please try again tomorrow.');
+        } else {
+          setErrorMessage('Failed to process repayment. Please try again later.');
+        }
+      } else {
+        // Handle other errors (network errors, etc.)
+        setErrorMessage('An unexpected error occurred. Please try again.');
+        console.error("Repayment submission failed:", error);
+      }
     } finally {
       // Always reset loading state
       setIsSubmitting(false);
@@ -152,9 +209,9 @@ export function MyLoansPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {isLoading ? (
           <>
-            <MetricCardSkeleton />
-            <MetricCardSkeleton />
-            <MetricCardSkeleton />
+            <Skeleton className="h-24 bg-gray-100 animate-pulse rounded-2xl" />
+            <Skeleton className="h-24 bg-gray-100 animate-pulse rounded-2xl" />
+            <Skeleton className="h-24 bg-gray-100 animate-pulse rounded-2xl" />
           </>
         ) : (
           <>
@@ -299,8 +356,12 @@ export function MyLoansPage() {
                 type="number"
                 placeholder="e.g. 10,000"
                 value={repayAmount}
-                onChange={(e) => setRepayAmount(e.target.value)}
+                onChange={(e) => {
+                  setRepayAmount(e.target.value);
+                  clearFieldError('amountNaira');
+                }}
                 className="w-full h-12"
+                error={fieldErrors.amountNaira}
               />
             </div>
 
@@ -310,8 +371,12 @@ export function MyLoansPage() {
                 type="text"
                 placeholder="Bank transfer reference"
                 value={repayReference}
-                onChange={(e) => setRepayReference(e.target.value)}
+                onChange={(e) => {
+                  setRepayReference(e.target.value);
+                  clearFieldError('transferReference');
+                }}
                 className="w-full h-12"
+                error={fieldErrors.transferReference}
               />
             </div>
 
@@ -335,67 +400,43 @@ export function MyLoansPage() {
                     <p className="text-xs font-bold text-ink truncate max-w-[200px]">{repayFile.name}</p>
                   </div>
                 ) : (
-                  <>
+                  <div>
                     <UploadIcon className="w-8 h-8 text-ink-muted mb-2" />
                     <p className="text-xs font-bold text-ink">Click to upload image screenshot</p>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
           </div>
-
-          <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex gap-3">
-            <AlertCircleIcon className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <p className="text-xs text-amber-800 leading-relaxed">
-              Your balance will be updated once an admin approves your proof of payment. This typically takes 12-24 hours.
-            </p>
-          </div>
         </div>
       </Modal>
 
-      {/* Success Modal */}
       <Modal
         isOpen={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
-        title="Success"
-        footer={
-          <div className="flex justify-end">
-            <Button
-              onClick={() => setShowSuccessModal(false)}
-            >
-              OK
-            </Button>
-          </div>
-        }
+        title=""
       >
         <div className="p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <CheckIcon className="w-6 h-6 text-green-600" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">Repayment Submitted Successfully!</h3>
-              <p className="text-gray-600 text-sm mt-1">
-                Your repayment proof has been submitted and will be reviewed by our team. It typically takes 12-24 hours for approval.
-              </p>
-            </div>
-          </div>
+          <h3 className="text-lg font-semibold text-gray-900">Repayment Submitted Successfully!</h3>
+          <p className="text-gray-600 text-sm mt-1">
+            Your repayment proof has been submitted and will be reviewed by our team. It typically takes 12-24 hours for approval.
+          </p>
+          <Button
+            onClick={() => setShowSuccessModal(false)}
+          >
+            OK
+          </Button>
         </div>
       </Modal>
 
-      {/* Error Modal */}
       <Modal
         isOpen={showErrorModal}
         onClose={() => setShowErrorModal(false)}
-        title="Error"
+        title=""
         footer={
-          <div className="flex justify-end">
-            <Button
-              onClick={() => setShowErrorModal(false)}
-            >
-              OK
-            </Button>
-          </div>
+          <Button onClick={() => setShowErrorModal(false)}>
+            OK
+          </Button>
         }
       >
         <div className="p-6">
