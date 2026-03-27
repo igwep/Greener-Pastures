@@ -205,12 +205,13 @@ export function LoginPage() {
                   />
                   
                   <div className="flex justify-end mt-2">
-                    <a
-                      href="#"
-                      className="text-sm font-medium text-ajo-600 hover:text-ajo-700 transition-colors">
+                    <Link
+                      to="/forgot-password"
+                      className="text-sm font-medium text-ajo-600 hover:text-ajo-700 transition-colors"
+                    >
                       
                       Forgot your password?
-                    </a>
+                    </Link>
                   </div>
                 </div>
 
@@ -259,6 +260,6 @@ export function LoginPage() {
           </motion.div>
         </div>
       </div>
-    </div>);
-
+    </div>
+  );
 }
