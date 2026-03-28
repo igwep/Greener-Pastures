@@ -223,8 +223,8 @@ export function AjoPlanPage() {
                       <TargetIcon className="w-6 h-6 text-ajo-300" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold">{activePlan?.name || 'Growth Plan'}</h2>
-                      <p className="text-ajo-200 text-sm">
+                      <h2 className="text-xl sm:text-2xl font-bold">{activePlan?.name || 'Growth Plan'}</h2>
+                      <p className="text-ajo-200 text-xs sm:text-sm">
                         Consistent daily savings
                       </p>
                     </div>
@@ -232,7 +232,7 @@ export function AjoPlanPage() {
                   <div className="flex items-center gap-3">
                     <div className="bg-white/10 backdrop-blur-sm px-4 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
                       <ClockIcon className="w-4 h-4 text-ajo-300" />
-                      <span className="text-sm font-medium">{daysRemaining} days to payout</span>
+                      <span className="text-xs sm:text-sm font-medium">{daysRemaining} days to payout</span>
                     </div>
                     <Badge
                       variant="success"
@@ -248,13 +248,13 @@ export function AjoPlanPage() {
                     <p className="text-ajo-200 text-sm font-medium uppercase tracking-wider mb-2">
                       Total Target
                     </p>
-                    <p className="text-4xl font-bold tracking-tight">₦{totalTarget.toLocaleString()}</p>
+                    <p className="text-3xl sm:text-4xl font-bold tracking-tight">₦{totalTarget.toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-ajo-200 text-sm font-medium uppercase tracking-wider mb-2">
                       Amount Saved
                     </p>
-                    <p className="text-4xl font-bold text-ajo-300 tracking-tight">
+                    <p className="text-3xl sm:text-4xl font-bold text-ajo-300 tracking-tight">
                       ₦{currentSaved.toLocaleString()}
                     </p>
                   </div>
@@ -267,56 +267,56 @@ export function AjoPlanPage() {
             </div>
           </Card>
 
-          <div className="p-10 grid sm:grid-cols-2 md:grid-cols-3 gap-10 bg-white">
+          <div className="p-6 sm:p-10 grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-10 bg-white">
             <div>
               <div className="flex items-center gap-2 text-ink-secondary mb-2">
                 <TrendingUpIcon className="w-5 h-5 text-ajo-600" />
-                <span className="text-sm font-bold uppercase tracking-widest text-ink-muted">
+                <span className="text-xs sm:text-sm font-bold uppercase tracking-widest text-ink-muted">
                   Daily Contribution
                 </span>
               </div>
-              <p className="text-2xl font-bold text-ink">₦{dailyContribution.toLocaleString()}</p>
+              <p className="text-xl sm:text-2xl font-bold text-ink">₦{dailyContribution.toLocaleString()}</p>
             </div>
 
             <div>
               <div className="flex items-center gap-2 text-ink-secondary mb-2">
                 <ClockIcon className="w-5 h-5 text-blue-500" />
-                <span className="text-sm font-bold uppercase tracking-widest text-ink-muted">
+                <span className="text-xs sm:text-sm font-bold uppercase tracking-widest text-ink-muted">
                   Duration
                 </span>
               </div>
-              <p className="text-2xl font-bold text-ink">{totalDays} Days</p>
+              <p className="text-xl sm:text-2xl font-bold text-ink">{totalDays} Days</p>
             </div>
 
             <div>
               <div className="flex items-center gap-2 text-ink-secondary mb-2">
                 <CalendarIcon className="w-5 h-5 text-purple-500" />
-                <span className="text-sm font-bold uppercase tracking-widest text-ink-muted">
+                <span className="text-xs sm:text-sm font-bold uppercase tracking-widest text-ink-muted">
                   Payout Date
                 </span>
               </div>
-              <p className="text-2xl font-bold text-ink">{endDate}</p>
+              <p className="text-xl sm:text-2xl font-bold text-ink">{endDate}</p>
             </div>
 
             <div className="pt-6 border-t border-gray-100">
-              <p className="text-sm font-bold uppercase tracking-widest text-ink-muted mb-2">
+              <p className="text-xs sm:text-sm font-bold uppercase tracking-widest text-ink-muted mb-2">
                 Start Date
               </p>
-              <p className="text-lg font-semibold text-ink">{startDate}</p>
+              <p className="text-base sm:text-lg font-semibold text-ink">{startDate}</p>
             </div>
 
             <div className="pt-6 border-t border-gray-100">
-              <p className="text-sm font-bold uppercase tracking-widest text-ink-muted mb-2">
+              <p className="text-xs sm:text-sm font-bold uppercase tracking-widest text-ink-muted mb-2">
                 Days Completed
               </p>
-              <p className="text-lg font-semibold text-ink">{daysCompleted} Days</p>
+              <p className="text-base sm:text-lg font-semibold text-ink">{daysCompleted} Days</p>
             </div>
 
             <div className="pt-6 border-t border-gray-100">
-              <p className="text-sm font-bold uppercase tracking-widest text-ink-muted mb-2">
+              <p className="text-xs sm:text-sm font-bold uppercase tracking-widest text-ink-muted mb-2">
                 Days Remaining
               </p>
-              <p className="text-lg font-semibold text-ink">{daysRemaining} Days</p>
+              <p className="text-base sm:text-lg font-semibold text-ink">{daysRemaining} Days</p>
             </div>
           </div>
         </div>

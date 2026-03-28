@@ -623,8 +623,8 @@ export function DashboardPage() {
                 onClick={handleCloseDepositDialog}
                 aria-label="Close deposit dialog"
               />
-              <div className="relative z-10 w-full max-w-lg">
-                <Card className="p-6 rounded-3xl border-none shadow-lg bg-white">
+              <div className="relative z-10 w-full max-w-lg max-h-[90vh] flex flex-col">
+                <Card className="p-6 rounded-3xl border-none shadow-lg bg-white flex-1 overflow-y-auto">
                   <div className="flex items-start justify-between gap-4 mb-6">
                     <div>
                       <h2 className="text-xl font-bold text-ink">Make a Deposit</h2>
@@ -732,7 +732,7 @@ export function DashboardPage() {
                         <img
                           src={depositScreenshotUrl}
                           alt="Deposit screenshot preview"
-                          className="w-full rounded-2xl border border-ajo-200 object-cover max-h-64"
+                          className="w-full rounded-2xl border border-ajo-200 object-cover max-h-48"
                         />
                       </div>
                     ) : null}
