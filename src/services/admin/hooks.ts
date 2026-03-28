@@ -14,7 +14,9 @@ import {
   getAdminUsers,
   getAdminUserFullData,
   updateTransferAccount,
+  getTransferAccount,
   type UpdateTransferAccountRequest,
+  type TransferAccount,
   getAdminAllLoans,
   getAdminAllDeposits,
   getAdminRepayments,
@@ -35,7 +37,12 @@ import {
   type ApproveWithdrawalRequest,
   type RejectWithdrawalRequest,
   type MarkWithdrawalAsPaidRequest,
-  type AdminWithdrawalsResponse
+  type AdminWithdrawalsResponse,
+  getAdminPlans,
+  createAdminPlan,
+  type CreateAdminPlanRequest,
+  type AdminPlansResponse,
+  type AdminPlan
 } from './actions';
 
 export function useAdminDashboardQuery() {
@@ -138,7 +145,17 @@ export function useUpdateTransferAccountMutation() {
     mutationFn: updateTransferAccount,
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+      await qc.invalidateQueries({ queryKey: ['transferAccount'] });
     },
+  });
+}
+
+export function useTransferAccountQuery() {
+  return useQuery<{ transferAccount: TransferAccount }, ApiError>({
+    queryKey: ['transferAccount'],
+    queryFn: ({ signal }) => getTransferAccount(signal),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -255,6 +272,26 @@ export function useMarkWithdrawalAsPaidMutation() {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ['admin', 'withdrawals'] });
       await qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+    },
+  });
+}
+
+// Admin Plans
+export function useAdminPlansQuery() {
+  return useQuery<AdminPlansResponse, ApiError>({
+    queryKey: ['admin', 'plans'],
+    queryFn: ({ signal }) => getAdminPlans(signal),
+    staleTime: 1000 * 60 * 10, // 10 minutes
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useCreateAdminPlanMutation() {
+  const qc = useQueryClient();
+  return useMutation<{ plan: AdminPlan }, ApiError, CreateAdminPlanRequest>({
+    mutationFn: createAdminPlan,
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ['admin', 'plans'] });
     },
   });
 }

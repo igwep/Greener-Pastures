@@ -5,14 +5,23 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Skeleton } from '../components/ui/Skeleton';
-import { SearchIcon, StarIcon, PlusIcon } from 'lucide-react';
-import { usePublicProductsQuery, useMarketplaceSettingsQuery } from '../services/marketplace/hooks';
+import { SearchIcon, StarIcon, PlusIcon, EditIcon } from 'lucide-react';
+import { usePublicProductsQuery, useMarketplaceSettingsQuery, useCategoriesQuery } from '../services/marketplace/hooks';
+import { PublicLayout } from '../components/layout/PublicLayout';
 import type { Product } from '../schemas/marketplace';
 
 export function MarketplacePage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const { data: productsData, isLoading: isProductsLoading, error: productsError } = usePublicProductsQuery();
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const { data: productsData, isLoading: isProductsLoading, error: productsError } = usePublicProductsQuery(selectedCategoryId || undefined);
   const { data: settings } = useMarketplaceSettingsQuery();
+  const { data: categoriesData } = useCategoriesQuery();
+
+  console.log('=== MARKETPLACE CATEGORY DEBUG ===');
+  console.log('selectedCategoryId:', selectedCategoryId);
+  console.log('categoriesData:', categoriesData);
+  console.log('productsData:', productsData);
+  console.log('=== END CATEGORY DEBUG ===');
 
   // Fallback mock data when API fails
   const mockProducts = [
@@ -29,6 +38,7 @@ export function MarketplacePage() {
       instagramUrl: '',
       otherUrl: '',
       status: 'ACTIVE' as const,
+      active: true,
       userId: '1',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -52,6 +62,7 @@ export function MarketplacePage() {
       instagramUrl: '',
       otherUrl: '',
       status: 'ACTIVE' as const,
+      active: true,
       userId: '2',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -66,23 +77,26 @@ export function MarketplacePage() {
 
   const products: Product[] = productsData?.products || (productsError ? mockProducts : []);
   
-  // Filter products based on search
-  const filteredProducts = products.filter(product =>
-    product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter products based on search and category
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = !selectedCategoryId || product.categoryId === selectedCategoryId;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <motion.div
-      initial={{
-        opacity: 0,
-        y: 20
-      }}
-      animate={{
-        opacity: 1,
-        y: 0
-      }}
-      className="space-y-8 pb-12">
+    <PublicLayout>
+      <motion.div
+        initial={{
+          opacity: 0,
+          y: 20
+        }}
+        animate={{
+          opacity: 1,
+          y: 0
+        }}
+        className="space-y-8 pb-12 md:pt-16 pt-6 px-4 max-w-7xl mx-auto">
       
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
@@ -104,26 +118,48 @@ export function MarketplacePage() {
               className="pl-12"
             />
           </div>
-          <Link to="/marketplace/add-product">
-            <Button className="flex items-center gap-2">
-              <PlusIcon className="w-4 h-4" />
-              Add Product
-            </Button>
-          </Link>
+          {false ? (
+            <Link to="/login">
+              <Button className="flex items-center gap-2">
+                <PlusIcon className="w-4 h-4" />
+                Add Product
+              </Button>
+            </Link>
+          ) : (
+            <Link to="/register">
+              <Button className="flex items-center gap-2">
+                <PlusIcon className="w-4 h-4" />
+                Add Product
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-        {['All Items', 'Electronics', 'Fashion', 'Home', 'Vehicles'].map(
-          (cat, i) =>
+        <button
+          onClick={() => setSelectedCategoryId(null)}
+          className={`px-5 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors ${
+            selectedCategoryId === null 
+              ? 'bg-ink text-white shadow-md' 
+              : 'bg-white text-ink-secondary border border-gray-200 hover:bg-surface'
+          }`}
+        >
+          All Items
+        </button>
+        {categoriesData?.categories?.map((category) => (
           <button
-            key={i}
-            className={`px-5 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors ${i === 0 ? 'bg-ink text-white shadow-md' : 'bg-white text-ink-secondary border border-gray-200 hover:bg-surface'}`}>
-            
-              {cat}
-            </button>
-
-        )}
+            key={category.id}
+            onClick={() => setSelectedCategoryId(category.id)}
+            className={`px-5 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-colors ${
+              selectedCategoryId === category.id 
+                ? 'bg-ink text-white shadow-md' 
+                : 'bg-white text-ink-secondary border border-gray-200 hover:bg-surface'
+            }`}
+          >
+            {category.name}
+          </button>
+        ))}
       </div>
 
       {isProductsLoading ? (
@@ -159,14 +195,33 @@ export function MarketplacePage() {
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredProducts.map((product) =>
-          <Link key={product.id} to={`/marketplace/product/${product.id}`}>
+          {filteredProducts.map((product) => {
+            console.log('=== RENDERING PRODUCT ===');
+            console.log('Product ID:', product.id);
+            console.log('Product title:', product.title);
+            console.log('Product imageUrls:', product.imageUrls);
+            console.log('ImageUrls type:', typeof product.imageUrls);
+            console.log('ImageUrls length:', product.imageUrls?.length);
+            console.log('First image URL:', product.imageUrls?.[0]);
+            console.log('=== END PRODUCT DEBUG ===');
+            
+            // Check if current user is the product owner
+            const isOwner = false; // Public marketplace doesn't show edit options
+            
+            return (
+            <Link key={product.id} to={`/marketplace/product/${product.id}`}>
               <Card
-              hoverable
-              className="p-0 overflow-hidden flex flex-col h-full group rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300">
+                hoverable
+                className="p-0 overflow-hidden flex flex-col h-full group rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300"
+              >
               
                 <div className="h-56 overflow-hidden bg-surface relative">
-                  {product.imageUrls[0] ? (
+                  {product.images && product.images.length > 0 && product.images[0]?.imagePath ? (
+                    <img
+                    src={product.images[0].imagePath}
+                    alt={product.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  ) : product.imageUrls && product.imageUrls.length > 0 && product.imageUrls[0] ? (
                     <img
                     src={product.imageUrls[0]}
                     alt={product.title}
@@ -191,29 +246,33 @@ export function MarketplacePage() {
                   </p>
 
                   <div className="mt-auto flex items-center justify-between pt-5 border-t border-gray-100">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center text-sm font-bold text-ink border border-gray-200">
-                        {product.user?.firstName?.charAt(0) || 'U'}
+                    <div className="flex items-center gap-2">
+                      {isOwner && (
+                        <Link to={`/marketplace/edit-product/${product.id}`} onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="sm" className="p-1.5">
+                            <EditIcon className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                      )}
+                      <div className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        product.status === 'ACTIVE' 
+                          ? 'bg-green-100 text-green-700' 
+                          : product.status === 'PENDING'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {product.status}
                       </div>
-                      <span className="text-sm font-medium text-ink-secondary">
-                        {product.user ? `${product.user.firstName} ${product.user.lastName}`.charAt(0) + '.' : 'Unknown'}
-                      </span>
-                    </div>
-                    <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      product.status === 'ACTIVE' 
-                        ? 'bg-green-100 text-green-700' 
-                        : product.status === 'PENDING'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}>
-                      {product.status}
                     </div>
                   </div>
                 </div>
               </Card>
             </Link>
-          )}
+            );
+          })}
         </div>
       )}
-    </motion.div>);
+      </motion.div>
+    </PublicLayout>
+  );
 }

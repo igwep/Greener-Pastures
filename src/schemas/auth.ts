@@ -116,6 +116,10 @@ export const loanApplicationSchema = z.object({
   formUrl: z.string()
     .min(1, "Signed document is required")
     .url("Please upload a valid document")
+  ,
+  guarantorFormUrl: z.string()
+    .min(1, "Guarantor form is required")
+    .url("Please upload a valid guarantor form")
 });
 
 export type LoanApplicationFormData = z.infer<typeof loanApplicationSchema>;

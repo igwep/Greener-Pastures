@@ -36,6 +36,34 @@ export async function uploadImageToCloudinary(file: File): Promise<CloudinaryUpl
   return response.json();
 }
 
+export async function uploadFileToCloudinary(file: File): Promise<CloudinaryUploadResponse> {
+  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+  if (!cloudName || !uploadPreset) {
+    throw new Error('Cloudinary configuration missing');
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', uploadPreset);
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+    {
+      method: 'POST',
+      body: formData
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Cloudinary upload failed: ${errorText}`);
+  }
+
+  return response.json();
+}
+
 // HMAC-SHA1 signature generation for Cloudinary
 async function generateHmacSHA1(message: string, secret: string): Promise<string> {
   const encoder = new TextEncoder();

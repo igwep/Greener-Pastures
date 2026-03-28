@@ -76,3 +76,28 @@ export async function loginAdmin(payload: LoginRequest) {
 export async function getAuthMe(signal?: AbortSignal) {
   return apiRequest<AuthMeResponse>('/api/v1/auth/me', { signal });
 }
+
+export async function updateProfile(payload: {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  currentPassword?: string;
+  newPassword?: string;
+}) {
+  console.log('=== UPDATE PROFILE ACTION START ===');
+  console.log('📤 Payload received:', payload);
+  console.log('🌐 Making API call to: PUT /api/v1/auth/profile');
+  
+  try {
+    const result = await apiRequest<AuthMeResponse>('/api/v1/auth/profile', {
+      method: 'PUT',
+      body: payload
+    });
+    console.log('✅ API request successful:', result);
+    return result;
+  } catch (error) {
+    console.error('❌ API request failed:', error);
+    throw error;
+  }
+}

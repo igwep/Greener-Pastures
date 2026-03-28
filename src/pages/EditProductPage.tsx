@@ -1,28 +1,48 @@
-import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Modal } from '../components/ui/Modal';
-import { PlusIcon, XIcon, AlertCircleIcon, WalletIcon, UploadIcon, ImageIcon } from 'lucide-react';
-import { useCreateProductMutation, useMarketplaceSettingsQuery, useMarketplaceCategoriesQuery } from '../services/marketplace/hooks';
+import { EditProductSkeleton } from '../components/skeleton/EditProductSkeleton';
+import { XIcon, UploadIcon } from 'lucide-react';
+import { useUpdateProductMutation, useMarketplaceSettingsQuery, useMarketplaceCategoriesQuery, useMyProductsQuery } from '../services/marketplace/hooks';
 import { useDashboardSummaryQuery } from '../services/dashboard/hooks';
 import { getStoredUser } from '../services/auth/session';
-import { uploadImageToCloudinary, CloudinaryUploadResponse } from '../services/cloudinary';
-import { createProductSchema, CreateProductFormData } from '../schemas/marketplace';
+import { uploadImageToCloudinary } from '../services/cloudinary';
+import { updateProductSchema, UpdateProductFormData, CreateProductFormData } from '../schemas/marketplace';
+
+// Form state type that includes fields needed for UI but not sent to API
+type EditProductFormState = UpdateProductFormData & {
+  listingDays: number;
+  imageUrls: string[];
+};
 import { z } from 'zod';
 
-export function AddProductPage() {
+export function EditProductPage() {
+  const { id } = useParams();
   const navigate = useNavigate();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string>('');
   const [uploadingImages, setUploadingImages] = useState<boolean[]>([false, false, false]);
   const [imagePreviews, setImagePreviews] = useState<string[]>(['', '', '']);
 
+  const { data: myProductsData, isLoading: productLoading } = useMyProductsQuery();
+  const updateProductMutation = useUpdateProductMutation();
+  const { data: settings } = useMarketplaceSettingsQuery();
+  const { data: categories } = useMarketplaceCategoriesQuery();
+  const { data: dashboardSummary } = useDashboardSummaryQuery();
+  const storedUser = getStoredUser();
+  const user = dashboardSummary?.user ?? storedUser;
+
+  // Find the specific product from my products
+  const product = myProductsData?.products?.find(p => p.id === id);
+
   // Form state
-  const [formData, setFormData] = useState<CreateProductFormData>({
+  const [formData, setFormData] = useState<EditProductFormState>({
     title: '',
     description: '',
     priceNaira: '',
@@ -36,13 +56,94 @@ export function AddProductPage() {
     otherUrl: ''
   });
 
-  // API calls
-  const createProductMutation = useCreateProductMutation();
-  const { data: settings, isLoading: settingsLoading } = useMarketplaceSettingsQuery();
-  const { data: categories } = useMarketplaceCategoriesQuery();
-  const { data: dashboardSummary } = useDashboardSummaryQuery();
-  const storedUser = getStoredUser();
-  const user = dashboardSummary?.user ?? storedUser;
+  // Reset form
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      priceNaira: '',
+      listingDays: 30,
+      imageUrls: ['', '', ''],
+      phoneNumber: '',
+      categoryId: '',
+      facebookUrl: '',
+      instagramUrl: '',
+      tiktokUrl: '',
+      otherUrl: ''
+    });
+  };
+
+  // Initialize form with product data
+  useEffect(() => {
+    console.log('=== EDIT PRODUCT - PREFILLED DATA ===');
+    console.log('Product object:', product);
+    console.log('Product keys:', product ? Object.keys(product) : 'Product is null');
+    console.log('Product ID:', product?.id);
+    console.log('Product title:', product?.title);
+    console.log('Product description:', product?.description);
+    console.log('Product price:', product?.priceNaira);
+    console.log('Product phone:', product?.phoneNumber);
+    console.log('Product categoryId:', product?.categoryId);
+    console.log('Product social media:', {
+      facebook: product?.facebookUrl,
+      instagram: product?.instagramUrl,
+      tiktok: product?.tiktokUrl,
+      other: product?.otherUrl
+    });
+    console.log('Product images:', product?.images);
+    console.log('Product imageUrls:', product?.imageUrls);
+    console.log('Full product structure:', JSON.stringify(product, null, 2));
+    console.log('=== END PREFILLED DATA ===');
+    
+    if (product) {
+      // Calculate listing duration from createdAt and expiresAt
+      const listingDays = product.createdAt && product.expiresAt 
+        ? Math.ceil((new Date(product.expiresAt).getTime() - new Date(product.createdAt).getTime()) / (1000 * 60 * 60 * 24))
+        : 30;
+      
+      console.log('=== CALCULATED LISTING DURATION ===');
+      console.log('createdAt:', product.createdAt);
+      console.log('expiresAt:', product.expiresAt);
+      console.log('Calculated listingDays:', listingDays);
+      console.log('=== END CALCULATION ===');
+      
+      setFormData({
+        title: product.title || '',
+        description: product.description || '',
+        priceNaira: product.priceNaira || '',
+        listingDays: listingDays, // Use calculated duration
+        imageUrls: product.images?.map(img => img.imagePath) || ['', '', ''], // Convert images to imageUrls
+        phoneNumber: product.phoneNumber || '',
+        categoryId: product.categoryId || '',
+        facebookUrl: product.facebookUrl || '',
+        instagramUrl: product.instagramUrl || '',
+        tiktokUrl: product.tiktokUrl || '',
+        otherUrl: product.otherUrl || ''
+      });
+      setImagePreviews(product.images?.map(img => img.imagePath) || ['', '', '']);
+      
+      console.log('=== FORM DATA SET ===');
+      console.log('Form data after setting:', {
+        title: product.title || '',
+        description: product.description || '',
+        priceNaira: product.priceNaira || '',
+        phoneNumber: product.phoneNumber || '',
+        categoryId: product.categoryId || '',
+        facebookUrl: product.facebookUrl || '',
+        instagramUrl: product.instagramUrl || '',
+        tiktokUrl: product.tiktokUrl || '',
+        otherUrl: product.otherUrl || '',
+        imageUrls: product.images?.map(img => img.imagePath) || ['', '', ''],
+        listingDays: listingDays // Show calculated duration
+      });
+      
+      const initialImageUrls = product.images?.map(img => img.imagePath) || ['', '', ''];
+      console.log('Initial image URLs from product.images:', initialImageUrls);
+      setImagePreviews(initialImageUrls);
+      console.log('Image previews set to:', initialImageUrls);
+      console.log('=== END FORM DATA ===');
+    }
+  }, [product]);
 
   // Fallback settings when API fails
   const fallbackSettings = {
@@ -53,17 +154,17 @@ export function AddProductPage() {
   const currentSettings = settings || fallbackSettings;
 
   // Calculate fees
-  const listingFee = useMemo(() => {
+  const listingFee = useState(() => {
     if (!currentSettings?.dailyListingFeeNaira) return 0;
     const dailyFee = Number(currentSettings.dailyListingFeeNaira);
     return dailyFee * formData.listingDays;
-  }, [currentSettings, formData.listingDays]);
+  })[0];
 
-  const walletBalance = useMemo(() => {
+  const walletBalance = useState(() => {
     const balanceRaw = (user as any)?.wallet?.balanceNaira;
     const balanceNumber = typeof balanceRaw === 'string' ? Number(balanceRaw) : NaN;
     return Number.isFinite(balanceNumber) ? balanceNumber : 0;
-  }, [user]);
+  })[0];
 
   const canAfford = walletBalance >= listingFee;
 
@@ -103,39 +204,40 @@ export function AddProductPage() {
       newUploadingImages[index] = true;
       setUploadingImages(newUploadingImages);
       
+      console.log('=== IMAGE UPLOAD DEBUG ===');
+      console.log('Uploading image for index:', index);
+      console.log('File details:', {
+        name: file.name,
+        type: file.type,
+        size: file.size
+      });
+      console.log('Current formData.imageUrls before upload:', formData.imageUrls);
+      console.log('Current imagePreviews before upload:', imagePreviews);
+      
       // Upload to Cloudinary
       const response = await uploadImageToCloudinary(file);
       
-      console.log('=== IMAGE UPLOAD SUCCESS ===');
-      console.log('Image index:', index);
       console.log('Cloudinary response:', response);
-      console.log('Secure URL:', response.secure_url);
-      console.log('Public ID:', response.public_id);
-      console.log('=== END IMAGE UPLOAD SUCCESS ===');
+      console.log('New secure_url:', response.secure_url);
       
       // Update form data with the new URL
       const newImageUrls = [...formData.imageUrls];
       newImageUrls[index] = response.secure_url;
+      console.log('newImageUrls after update:', newImageUrls);
       setFormData(prev => ({ ...prev, imageUrls: newImageUrls }));
       
       // Update preview
       const newPreviews = [...imagePreviews];
       newPreviews[index] = response.secure_url;
+      console.log('newPreviews after update:', newPreviews);
       setImagePreviews(newPreviews);
+      
+      console.log('Final formData.imageUrls (after state update):', newImageUrls);
+      console.log('=== END IMAGE UPLOAD DEBUG ===');
       
       // Clear any previous errors
       setServerError('');
     } catch (error) {
-      console.error('=== IMAGE UPLOAD ERROR ===');
-      console.error('Image index:', index);
-      console.error('File being uploaded:', file);
-      console.error('File type:', file.type);
-      console.error('File size:', file.size);
-      console.error('Error:', error);
-      console.error('Error type:', typeof error);
-      console.error('Error message:', error instanceof Error ? error.message : 'No message available');
-      console.error('=== END IMAGE UPLOAD ERROR ===');
-      
       setServerError('Failed to upload image. Please try again.');
     } finally {
       // Reset uploading state
@@ -146,27 +248,68 @@ export function AddProductPage() {
   };
 
   const handleImageRemove = (index: number) => {
+    console.log('=== IMAGE REMOVE DEBUG ===');
+    console.log('Removing image at index:', index);
+    console.log('Current formData.imageUrls before removal:', formData.imageUrls);
+    console.log('Current imagePreviews before removal:', imagePreviews);
+    
     const newImageUrls = [...formData.imageUrls];
     newImageUrls[index] = '';
+    console.log('newImageUrls after removal:', newImageUrls);
     setFormData(prev => ({ ...prev, imageUrls: newImageUrls }));
     
     const newPreviews = [...imagePreviews];
     newPreviews[index] = '';
+    console.log('newPreviews after removal:', newPreviews);
     setImagePreviews(newPreviews);
+    
+    console.log('=== END IMAGE REMOVE DEBUG ===');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!id) return;
     
     // Clear previous errors
     setFieldErrors({});
     setServerError('');
 
     try {
-      // Validate form data with Zod
-      const validatedData = createProductSchema.parse(formData);
+      // Validate form data with Zod using update schema
+      console.log('=== VALIDATION DEBUG ===');
+      console.log('Validating data:', {
+        title: formData.title,
+        description: formData.description,
+        priceNaira: formData.priceNaira,
+        phoneNumber: formData.phoneNumber,
+        categoryId: formData.categoryId,
+        imageUrls: formData.imageUrls.filter(url => url && url.trim() !== ''), // Filter empty URLs for validation
+        facebookUrl: formData.facebookUrl,
+        instagramUrl: formData.instagramUrl,
+        tiktokUrl: formData.tiktokUrl,
+        otherUrl: formData.otherUrl
+      });
+      console.log('Schema being used:', updateProductSchema);
+      console.log('=== END VALIDATION DEBUG ===');
+      
+      // Filter out empty image URLs for validation
+      const validImageUrls = formData.imageUrls.filter(url => url && url.trim() !== '');
+      
+      updateProductSchema.parse({
+        title: formData.title,
+        description: formData.description,
+        priceNaira: formData.priceNaira,
+        phoneNumber: formData.phoneNumber,
+        categoryId: formData.categoryId,
+        imageUrls: validImageUrls,
+        facebookUrl: formData.facebookUrl,
+        tiktokUrl: formData.tiktokUrl || "",
+        instagramUrl: formData.instagramUrl || "",
+        otherUrl: formData.otherUrl || ""
+      });
 
-      // Check if user can afford the listing fee
+      // Check if user can afford the listing fee (only if changing duration)
       if (!canAfford) {
         setServerError('Insufficient wallet balance to cover the listing fee.');
         return;
@@ -175,103 +318,124 @@ export function AddProductPage() {
       // Show confirmation modal
       setShowConfirmModal(true);
     } catch (error) {
+      console.error('=== VALIDATION ERROR ===');
+      console.error('Error type:', typeof error);
+      console.error('Error details:', error);
+      
       if (error instanceof z.ZodError) {
-        // Handle validation errors
-        const errors: Record<string, string> = {};
+        console.error('Zod validation errors:', error.issues);
+        const fieldErrors: Record<string, string> = {};
         error.issues.forEach((err: any) => {
           if (err.path.length > 0) {
-            errors[err.path[0]] = err.message;
+            fieldErrors[err.path[0] as string] = err.message;
           }
         });
-        setFieldErrors(errors);
+        setFieldErrors(fieldErrors);
+        console.error('Field errors set:', fieldErrors);
       } else {
-        setServerError('An unexpected error occurred. Please try again.');
+        console.error('Non-validation error:', error);
+        setServerError('Invalid product data. Please check all fields and try again.');
       }
+      console.error('=== END VALIDATION ERROR ===');
     }
   };
 
   const handleConfirmSubmission = async () => {
-    setShowConfirmModal(false);
+    if (!id) return;
     
     try {
-      // Filter out empty image URLs before sending to API
-      const filteredFormData = {
-        ...formData,
-        imageUrls: formData.imageUrls.filter(url => url && url.trim() !== '')
+      // Create API data object with all required fields
+      console.log('=== FORM SUBMISSION DEBUG ===');
+      console.log('Current formData.imageUrls:', formData.imageUrls);
+      console.log('Current imagePreviews:', imagePreviews);
+      
+      // Filter out empty image URLs for API call (backend expects only valid URLs)
+      const validImageUrls = formData.imageUrls.filter(url => url && url.trim() !== '');
+      console.log('Filtered valid image URLs:', validImageUrls);
+      console.log('Number of valid images:', validImageUrls.length);
+      
+      const updateData: UpdateProductFormData = {
+        title: formData.title,
+        description: formData.description,
+        priceNaira: formData.priceNaira,
+        phoneNumber: formData.phoneNumber,
+        facebookUrl: formData.facebookUrl,
+        tiktokUrl: formData.tiktokUrl || "",
+        instagramUrl: formData.instagramUrl || "",
+        otherUrl: formData.otherUrl || "",
+        categoryId: formData.categoryId,
+        imageUrls: validImageUrls
       };
       
-      /* console.log('=== SUBMITTING PRODUCT ===');
-      console.log('Original imageUrls:', formData.imageUrls);
-      console.log('Filtered imageUrls:', filteredFormData.imageUrls);
-      console.log('=== END SUBMIT DEBUG ==='); */
+      console.log('Final update data being sent:', updateData);
+      console.log('=== END FORM SUBMISSION DEBUG ===');
       
-      await createProductMutation.mutateAsync(filteredFormData);
+      await updateProductMutation.mutateAsync({ productId: id, data: updateData });
       
-      // Navigate to marketplace inventory page
-      navigate('/marketplace');
+      setShowConfirmModal(false);
+      setShowSuccessModal(true);
     } catch (error) {
-     /*  console.error('=== PRODUCT CREATION ERROR ===');
+      console.error('=== PRODUCT UPDATE ERROR ===');
       console.error('Error type:', typeof error);
       console.error('Error object:', error);
-      console.error('Error message:', error instanceof Error ? error.message : 'No message available');
-      console.error('Form data being submitted:', formData); */
       
       if (error && typeof error === 'object' && 'status' in error) {
         const apiError = error as any;
-     /*    console.error('API Error Status:', apiError.status);
-        console.error('API Error Payload:', apiError.payload);
-        console.error('API Error Message:', apiError.message); */
         
         // Handle specific API errors
         switch (apiError.status) {
           case 400:
-            console.error('400 Bad Request - Validation failed');
             setServerError('Invalid product data. Please check all fields and try again.');
             break;
           case 401:
-            console.error('401 Unauthorized - Authentication failed');
             setServerError('You are not authorized. Please log in again.');
             break;
           case 402:
-            console.error('402 Payment Required - Insufficient balance');
             setServerError('Payment required. Insufficient wallet balance for listing fee.');
             break;
           case 403:
-            console.error('403 Forbidden - Permission denied');
-            setServerError('Access denied. You do not have permission to create products.');
+            setServerError('Access denied. You do not have permission to edit this product.');
+            break;
+          case 404:
+            setServerError('Product not found.');
             break;
           case 429:
-            console.error('429 Too Many Requests - Rate limited');
             setServerError('Too many requests. Please wait a moment and try again.');
             break;
           case 500:
-            console.error('500 Internal Server Error');
             setServerError('Server error. Please try again later.');
             break;
           default:
-            console.error(`Unhandled error status: ${apiError.status}`);
             if (apiError.payload?.error) {
-              console.error('Using payload error message:', apiError.payload.error);
               setServerError(apiError.payload.error);
             } else if (apiError.message) {
-              console.error('Using error message:', apiError.message);
               setServerError(apiError.message);
             } else {
-              console.error('Using generic error message');
-              setServerError(`Failed to create product (${apiError.status}). Please try again.`);
+              setServerError(`Failed to update product (${apiError.status}). Please try again.`);
             }
         }
       } else if (error instanceof Error) {
-        console.error('JavaScript Error - Using error message:', error.message);
-        console.error('Error stack:', error.stack);
         setServerError(error.message);
       } else {
-        console.error('Unknown error type - Using generic message');
-        setServerError('Failed to create product. Please try again.');
+        setServerError('Failed to update product. Please try again.');
       }
-      console.error('=== END PRODUCT CREATION ERROR ===');
     }
   };
+
+  if (productLoading) {
+    return <EditProductSkeleton />;
+  }
+
+  if (!product) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-8 pb-12 text-center">
+        <h1 className="text-2xl font-bold text-ink">Product not found</h1>
+        <Button onClick={() => navigate('/marketplace')}>
+          Back to Marketplace
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -282,17 +446,17 @@ export function AddProductPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-ink tracking-tight">
-            Add Product
+            Edit Product
           </h1>
           <p className="text-ink-secondary mt-1">
-            List your product on the community marketplace
+            Update your product listing
           </p>
         </div>
         <Button
           variant="secondary"
           onClick={() => navigate('/marketplace/my-listings')}
         >
-          Back to Marketplace
+          Back to My Products
         </Button>
       </div>
 
@@ -342,20 +506,12 @@ export function AddProductPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-ink mb-2">
-                    Listing Duration (days)
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Note: Listing duration cannot be changed for existing listings
                   </label>
-                  <select
-                    value={formData.listingDays}
-                    onChange={(e) => handleInputChange('listingDays', Number(e.target.value))}
-                    className="w-full h-12 px-4 rounded-xl border bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-ajo-500 transition-all text-ink border-gray-200"
-                  >
-                    <option value={7}>7 days</option>
-                    <option value={15}>15 days</option>
-                    <option value={30}>30 days</option>
-                    <option value={60}>60 days</option>
-                    <option value={90}>90 days</option>
-                  </select>
+                  <div className="h-12 px-4 rounded-xl border bg-gray-100 flex items-center text-gray-600">
+                    {formData.listingDays} days (fixed)
+                  </div>
                 </div>
               </div>
 
@@ -471,7 +627,7 @@ export function AddProductPage() {
 
                 <Input
                   label="TikTok URL"
-                  value={formData.tiktokUrl}
+                  value={formData.tiktokUrl || ''}
                   onChange={(e) => handleInputChange('tiktokUrl', e.target.value)}
                   placeholder="https://tiktok.com/@yourusername"
                   error={fieldErrors.tiktokUrl}
@@ -479,7 +635,7 @@ export function AddProductPage() {
 
                 <Input
                   label="Instagram URL"
-                  value={formData.instagramUrl}
+                  value={formData.instagramUrl || ''}
                   onChange={(e) => handleInputChange('instagramUrl', e.target.value)}
                   placeholder="https://instagram.com/yourusername"
                   error={fieldErrors.instagramUrl}
@@ -487,7 +643,7 @@ export function AddProductPage() {
 
                 <Input
                   label="Other URL"
-                  value={formData.otherUrl}
+                  value={formData.otherUrl || ''}
                   onChange={(e) => handleInputChange('otherUrl', e.target.value)}
                   placeholder="https://yourwebsite.com"
                   error={fieldErrors.otherUrl}
@@ -503,70 +659,48 @@ export function AddProductPage() {
               <Button
                 type="submit"
                 className="w-full h-12 rounded-xl text-lg font-bold shadow-lg shadow-ajo-500/20"
-                isLoading={createProductMutation.isPending}
-                disabled={createProductMutation.isPending || !canAfford}
+                isLoading={updateProductMutation.isPending}
+                disabled={updateProductMutation.isPending}
               >
-                {createProductMutation.isPending ? 'Creating...' : 'Create Product Listing'}
+                {updateProductMutation.isPending ? 'Updating...' : 'Update Product'}
               </Button>
             </form>
           </Card>
         </div>
 
+        {/* Sidebar */}
         <div className="space-y-6">
-          <Card className="p-6 rounded-3xl border-none shadow-sm bg-white">
-            <h3 className="text-lg font-semibold text-ink mb-4">Listing Fee Summary</h3>
+          {/* Listing Information Card */}
+          <Card className="p-6 rounded-2xl border-none shadow-sm bg-white">
+            <h3 className="text-lg font-semibold text-ink mb-4">Listing Information</h3>
             
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-ink-secondary">Daily Fee:</span>
-                <span className="font-medium">₦{Number(currentSettings?.dailyListingFeeNaira || 0).toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-ink-secondary">Listing Duration:</span>
+                <span className="text-ink-secondary">Current Duration:</span>
                 <span className="font-medium">{formData.listingDays} days</span>
               </div>
+              <div className="flex justify-between items-center">
+                <span className="text-ink-secondary">Status:</span>
+                <span className="font-medium">{product.status}</span>
+              </div>
               <div className="border-t pt-3">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-ink">Total Fee:</span>
-                  <span className="text-xl font-bold text-ajo-600">₦{listingFee.toLocaleString()}</span>
-                </div>
+                <p className="text-sm text-ink-secondary">
+                  Note: Listing duration cannot be changed for existing listings. To extend your listing, use the "Extend Listing" option from your products page.
+                </p>
               </div>
             </div>
           </Card>
 
-          <Card className={`p-6 rounded-3xl border-none shadow-sm ${
-            canAfford ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-          }`}>
-            <div className="flex items-center gap-3 mb-3">
-              <WalletIcon className={`w-5 h-5 ${canAfford ? 'text-green-600' : 'text-red-600'}`} />
-              <h3 className="font-semibold text-ink">Wallet Balance</h3>
+          {/* Tips Card */}
+          <Card className="p-6 rounded-2xl border-none shadow-sm bg-white">
+            <h3 className="text-lg font-semibold text-ink mb-4">Tips for Better Listings</h3>
+            <div className="space-y-3 text-sm text-ink-secondary">
+              <p>• Use high-quality images from multiple angles</p>
+              <p>• Write detailed, honest descriptions</p>
+              <p>• Set competitive prices based on market research</p>
+              <p>• Include all relevant product specifications</p>
+              <p>• Respond promptly to buyer inquiries</p>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-ink-secondary">Available:</span>
-                <span className="font-medium">₦{walletBalance.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-ink-secondary">Fee Required:</span>
-                <span className="font-medium">₦{listingFee.toLocaleString()}</span>
-              </div>
-              <div className="border-t pt-2">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-ink">Remaining:</span>
-                  <span className={`font-bold ${canAfford ? 'text-green-600' : 'text-red-600'}`}>
-                    ₦{(walletBalance - listingFee).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </div>
-            {!canAfford && (
-              <div className="mt-4 p-3 bg-red-100 rounded-lg">
-                <p className="text-sm text-red-700">
-                  <AlertCircleIcon className="w-4 h-4 inline mr-1" />
-                  Insufficient balance. Please fund your wallet to create this listing.
-                </p>
-              </div>
-            )}
           </Card>
         </div>
       </div>
@@ -575,7 +709,7 @@ export function AddProductPage() {
       <Modal
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
-        title="Confirm Product Listing"
+        title="Confirm Product Update"
         footer={
           <div className="flex gap-3">
             <Button
@@ -587,42 +721,61 @@ export function AddProductPage() {
             </Button>
             <Button
               onClick={handleConfirmSubmission}
-              isLoading={createProductMutation.isPending}
+              isLoading={updateProductMutation.isPending}
               className="flex-1"
             >
-              Confirm & Pay Fee
+              Update Product
             </Button>
           </div>
         }
       >
         <div className="space-y-4">
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-amber-800 mb-2">
-              <WalletIcon className="w-5 h-5" />
-              <span className="font-semibold">Payment Confirmation</span>
-            </div>
-            <p className="text-amber-700 text-sm">
-              This amount will be charged from your wallet balance to create the product listing.
-            </p>
-          </div>
-          
           <div className="space-y-2">
             <div className="flex justify-between">
               <span className="text-ink-secondary">Product:</span>
               <span className="font-medium">{formData.title}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-ink-secondary">Listing Duration:</span>
-              <span className="font-medium">{formData.listingDays} days</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-ink-secondary">Total Fee:</span>
-              <span className="font-bold text-ajo-600">₦{listingFee.toLocaleString()}</span>
+              <span className="text-ink-secondary">Price:</span>
+              <span className="font-medium">₦{Number(formData.priceNaira).toLocaleString()}</span>
             </div>
           </div>
         </div>
       </Modal>
 
+      {/* Success Modal */}
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          navigate('/marketplace/my-listings');
+        }}
+        title="Product Updated Successfully!"
+        footer={
+          <Button
+            onClick={() => {
+              setShowSuccessModal(false);
+              navigate('/marketplace/my-listings');
+            }}
+          >
+            View My Products
+          </Button>
+        }
+      >
+        <div className="text-center py-4">
+          <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+          <p className="text-ink font-medium mb-2">Your product has been updated successfully!</p>
+          <p className="text-sm text-ink-secondary">
+            Your changes are now live on the marketplace.
+          </p>
+        </div>
+      </Modal>
     </motion.div>
   );
 }

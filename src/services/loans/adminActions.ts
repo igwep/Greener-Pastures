@@ -37,9 +37,23 @@ export async function listLoanApplicationsAdmin(params: ListLoanApplicationsPara
   if (params.cursor) query.append('cursor', params.cursor);
   if (params.status) query.append('status', params.status);
 
-  return apiRequest<ListLoanApplicationsResponse>(`/api/v1/loans/admin/applications?${query.toString()}`, {
+  console.log('=== ADMIN LOANS API DEBUG ===');
+  console.log('API endpoint:', `/api/v1/loans/admin/applications?${query.toString()}`);
+  console.log('Params:', params);
+  
+  const result = await apiRequest<ListLoanApplicationsResponse>(`/api/v1/loans/admin/applications?${query.toString()}`, {
     signal: params.signal,
   });
+  
+  console.log('API Response:', result);
+  console.log('Applications:', result.applications);
+  if (result.applications.length > 0) {
+    console.log('First application:', result.applications[0]);
+    console.log('First application keys:', Object.keys(result.applications[0]));
+  }
+  console.log('=== END ADMIN LOANS API DEBUG ===');
+  
+  return result;
 }
 
 export interface ApproveLoanRequest {

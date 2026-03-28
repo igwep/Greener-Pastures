@@ -1,9 +1,12 @@
-
 // src/services/marketplace/hooks.ts
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '../apiClient';
 import {
   createProduct,
+  createAdminProduct,
+  updateProduct,
+  deleteProduct,
+  toggleProductActive,
   getMyProducts,
   extendProduct,
   getPublicProducts,
@@ -13,6 +16,7 @@ import {
   getAdminProducts,
   approveProductAdmin,
   rejectProductAdmin,
+  suspendProductAdmin,
   getAdminMarketplaceSettings,
   updateAdminMarketplaceSettings,
   listAdminProducts,
@@ -25,10 +29,49 @@ import {
   type CreateProductResponse,
   type ExtendProductResponse,
   type ProductsResponse,
-  type CategoriesResponse
+  type CategoriesResponse,
+  type AdminProductStatus,
+  type AdminCreateProductRequest,
 } from './actions';
+import { UpdateProductFormData } from '../../schemas/marketplace';
 
 // User Product Management
+export function useUpdateProductMutation() {
+  const qc = useQueryClient();
+  return useMutation<CreateProductResponse, ApiError, { productId: string; data: UpdateProductFormData }>({
+    mutationFn: ({ productId, data }) => updateProduct(productId, data),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ['marketplace', 'my-products'] });
+      await qc.invalidateQueries({ queryKey: ['marketplace', 'public-product'] });
+      await qc.invalidateQueries({ queryKey: ['dashboardSummary'] });
+    },
+  });
+}
+
+export function useDeleteProductMutation() {
+  const qc = useQueryClient();
+  return useMutation<void, ApiError, string>({
+    mutationFn: deleteProduct,
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ['marketplace', 'my-products'] });
+      await qc.invalidateQueries({ queryKey: ['marketplace', 'public-product'] });
+      await qc.invalidateQueries({ queryKey: ['dashboardSummary'] });
+    },
+  });
+}
+
+export function useToggleProductActiveMutation() {
+  const qc = useQueryClient();
+  return useMutation<Product, ApiError, string>({
+    mutationFn: toggleProductActive,
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ['marketplace', 'my-products'] });
+      await qc.invalidateQueries({ queryKey: ['marketplace', 'public-product'] });
+      await qc.invalidateQueries({ queryKey: ['dashboardSummary'] });
+    },
+  });
+}
+
 export function useCreateProductMutation() {
   const qc = useQueryClient();
   return useMutation<CreateProductResponse, ApiError, CreateProductFormData>({
@@ -36,6 +79,17 @@ export function useCreateProductMutation() {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ['marketplace', 'my-products'] });
       await qc.invalidateQueries({ queryKey: ['dashboardSummary'] });
+    },
+  });
+}
+
+export function useCreateAdminProductMutation() {
+  const qc = useQueryClient();
+  return useMutation<{ product: Product }, ApiError, AdminCreateProductRequest>({
+    mutationFn: createAdminProduct,
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ['admin', 'marketplace', 'products'] });
+      await qc.invalidateQueries({ queryKey: ['marketplace', 'public-products'] });
     },
   });
 }
@@ -77,10 +131,10 @@ export function useExtendProductMutation() {
 }
 
 // Public Product Browsing
-export function usePublicProductsQuery() {
+export function usePublicProductsQuery(categoryId?: string) {
   return useQuery<ProductsResponse, ApiError>({
-    queryKey: ['marketplace', 'public-products'],
-    queryFn: ({ signal }) => getPublicProducts(signal),
+    queryKey: ['marketplace', 'public-products', categoryId],
+    queryFn: ({ signal }) => getPublicProducts({ categoryId, signal }),
     staleTime: 1000 * 60 * 2, // 2 minutes
   });
 }
@@ -90,6 +144,14 @@ export function usePublicProductQuery(productId: string) {
     queryKey: ['marketplace', 'public-product', productId],
     queryFn: ({ signal }) => getPublicProduct(productId, signal),
     enabled: !!productId,
+  });
+}
+
+export function useCategoriesQuery() {
+  return useQuery<CategoriesResponse, ApiError>({
+    queryKey: ['marketplace', 'categories'],
+    queryFn: ({ signal }) => getMarketplaceCategories(signal),
+    staleTime: 1000 * 60 * 10, // 10 minutes - categories don't change often
   });
 }
 
@@ -133,6 +195,17 @@ export function useRejectProductAdminMutation() {
   });
 }
 
+export function useSuspendProductAdminMutation() {
+  const qc = useQueryClient();
+  return useMutation<{ product: Product }, ApiError, string>({
+    mutationFn: suspendProductAdmin,
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ['admin', 'marketplace', 'products'] });
+      await qc.invalidateQueries({ queryKey: ['marketplace', 'public-products'] });
+    },
+  });
+}
+
 export function useAdminMarketplaceSettingsQuery() {
   return useQuery<MarketplaceSettings, ApiError>({
     queryKey: ['admin', 'marketplace', 'settings'],
@@ -153,10 +226,10 @@ export function useUpdateAdminMarketplaceSettingsMutation() {
 }
 
 // Legacy hooks for backward compatibility
-export function useAdminProductsQuery(params: { status: 'PENDING' | 'APPROVED' | 'REJECTED' }) {
+export function useAdminProductsQuery(params: { status: AdminProductStatus }) {
   return useQuery({
     queryKey: ['admin', 'marketplace', 'products', params.status],
-    queryFn: ({ signal }) => listAdminProducts({ ...params, signal }),
+    queryFn: ({ signal }) => listAdminProducts({ ...params, limit: 50, signal }),
   });
 }
 

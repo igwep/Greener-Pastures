@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useMemo } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { MetricCardSkeleton } from '../components/ui/Skeleton';
 import { useDashboardSummaryQuery } from '../services/dashboard/hooks';
+import { usePlansQuery, useSelectPlanMutation } from '../services/plans/hooks';
 import {
   CalendarIcon,
   TargetIcon,
@@ -15,6 +17,8 @@ import {
 'lucide-react';
 export function AjoPlanPage() {
   const { data: summary, isLoading } = useDashboardSummaryQuery();
+  const plansQuery = usePlansQuery();
+  const selectPlanMutation = useSelectPlanMutation();
 
   // Get active plan data
   const activePlan = summary?.activePlan;
@@ -39,10 +43,147 @@ export function AjoPlanPage() {
     day: 'numeric', 
     year: 'numeric' 
   }) : 'Not set';
-  
+
+  const todayIso = useMemo(() => {
+    const now = new Date();
+    return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+      .toISOString()
+      .slice(0, 10);
+  }, []);
+
+  const cycleFrom = useMemo(() => {
+    const startedAt = summary?.cycle?.planStartedAt;
+    if (!startedAt) return todayIso;
+    const d = new Date(startedAt);
+    if (!Number.isFinite(d.getTime())) return todayIso;
+    return d.toISOString().slice(0, 10);
+  }, [summary, todayIso]);
+
+  const cycleTo = useMemo(() => {
+    const expiresAt = summary?.cycle?.planExpiresAt;
+    if (!expiresAt) {
+      const start = new Date(`${cycleFrom}T00:00:00.000Z`);
+      const startMs = Number.isFinite(start.getTime()) ? start.getTime() : Date.now();
+      const dayMs = 1000 * 60 * 60 * 24;
+      const end = new Date(startMs + dayMs * 29);
+      return end.toISOString().slice(0, 10);
+    }
+    const d = new Date(expiresAt);
+    if (!Number.isFinite(d.getTime())) {
+      const start = new Date(`${cycleFrom}T00:00:00.000Z`);
+      const startMs = Number.isFinite(start.getTime()) ? start.getTime() : Date.now();
+      const dayMs = 1000 * 60 * 60 * 24;
+      const end = new Date(startMs + dayMs * 29);
+      return end.toISOString().slice(0, 10);
+    }
+    return d.toISOString().slice(0, 10);
+  }, [summary, cycleFrom]);
+
+  const cycleDates = useMemo(() => {
+    if (!cycleFrom || !cycleTo) return [] as string[];
+    const start = new Date(`${cycleFrom}T00:00:00.000Z`);
+    const end = new Date(`${cycleTo}T00:00:00.000Z`);
+    if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) return [] as string[];
+    const dayMs = 1000 * 60 * 60 * 24;
+    const dates: string[] = [];
+    for (let t = start.getTime(); t <= end.getTime(); t += dayMs) {
+      dates.push(new Date(t).toISOString().slice(0, 10));
+    }
+    return dates;
+  }, [cycleFrom, cycleTo]);
+
+  const totalDays = cycleDates.length > 0 ? cycleDates.length : 30;
+  const daysPassed = useMemo(() => {
+    let count = 0;
+    for (const d of cycleDates) {
+      if (d <= todayIso) count += 1;
+    }
+    return count;
+  }, [cycleDates, todayIso]);
+
   const daysCompleted = cycle?.currentCyclePaidDays || 0;
-  const totalDays = 30; // Assuming 30-day cycle
-  const daysRemaining = Math.max(0, totalDays - daysCompleted);
+  const daysRemaining = Math.max(0, totalDays - daysPassed);
+
+  if (isLoading) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-8 max-w-4xl mx-auto pb-12"
+      >
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-ink tracking-tight">My Ajo Plan</h1>
+          <Link to="/calendar">
+            <Button className="rounded-xl">View Calendar</Button>
+          </Link>
+        </div>
+        <MetricCardSkeleton />
+      </motion.div>
+    );
+  }
+
+  if (!isLoading && !activePlan) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-8 max-w-4xl mx-auto pb-12"
+      >
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-ink tracking-tight">Choose a Plan</h1>
+          <Link to="/dashboard">
+            <Button variant="ghost" className="rounded-xl">Back</Button>
+          </Link>
+        </div>
+
+        <Card className="p-6 rounded-3xl border-none shadow-sm bg-white">
+          {plansQuery.isLoading ? (
+            <p className="text-ink-secondary">Loading plans...</p>
+          ) : plansQuery.error ? (
+            <p className="text-sm text-red-600">Failed to load plans.</p>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-ink-secondary">
+                You don’t have an active plan. Select one below to start saving.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {(plansQuery.data ?? []).map((plan) => (
+                  <Card key={plan.id} className="p-5 border border-gray-100 shadow-sm rounded-2xl">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 className="text-lg font-bold text-ink">
+                          {typeof plan.name === 'string' && plan.name.trim().length > 0 ? plan.name : plan.id}
+                        </h3>
+                        {plan.contributionAmountNaira && (
+                          <p className="text-sm text-ink-secondary mt-1">
+                            Daily: ₦{Number(plan.contributionAmountNaira).toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                      <Button
+                        onClick={async () => {
+                          await selectPlanMutation.mutateAsync({ planId: plan.id });
+                        }}
+                        isLoading={selectPlanMutation.isPending}
+                        disabled={selectPlanMutation.isPending}
+                        className="rounded-xl"
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              {selectPlanMutation.error && (
+                <p className="text-sm text-red-600">{selectPlanMutation.error.message}</p>
+              )}
+            </div>
+          )}
+        </Card>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

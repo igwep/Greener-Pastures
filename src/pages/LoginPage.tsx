@@ -8,7 +8,7 @@ import { useLoginMutation } from '../services/auth/hooks';
 import { useAuth } from '../contexts/AuthContext';
 import { loginSchema, LoginFormData } from '../schemas/auth';
 import { z } from 'zod';
-import { MailIcon, LockIcon, SproutIcon } from 'lucide-react';
+import { MailIcon, LockIcon } from 'lucide-react';
 export function LoginPage() {
   const navigate = useNavigate();
   const loginMutation = useLoginMutation();
@@ -105,54 +105,28 @@ export function LoginPage() {
         </div>
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-ajo-600 rounded-full blur-[100px] opacity-20 -translate-y-1/2 translate-x-1/3"></div>
 
-        <div className="relative z-10">
-          <Link to="/" className="inline-flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20">
-              <SproutIcon className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-bold text-2xl tracking-tight">
-              Greener Pastures
-            </span>
-          </Link>
-        </div>
-
-        <div className="relative z-10 max-w-md">
-          <h1 className="text-4xl font-bold leading-tight mb-6">
-            "Every naira saved today is a step toward tomorrow."
-          </h1>
-          <div className="flex items-center gap-4">
-            <div className="flex -space-x-3">
-              <div className="w-10 h-10 rounded-full border-2 border-ajo-900 bg-gray-200 overflow-hidden">
-                <img src="https://i.pravatar.cc/100?img=1" alt="User" />
-              </div>
-              <div className="w-10 h-10 rounded-full border-2 border-ajo-900 bg-gray-200 overflow-hidden">
-                <img src="https://i.pravatar.cc/100?img=2" alt="User" />
-              </div>
-              <div className="w-10 h-10 rounded-full border-2 border-ajo-900 bg-gray-200 overflow-hidden">
-                <img src="https://i.pravatar.cc/100?img=3" alt="User" />
-              </div>
-            </div>
-            <p className="text-ajo-200 font-medium">
-              Join 10,000+ active savers
+        {/* Centered Logo */}
+        <div className="absolute inset-0 flex items-center justify-center z-10">
+          <div className="text-center">
+            <Link to="/" className="inline-flex items-center gap-3 mb-4">
+              <span className="font-bold text-5xl lg:text-6xl tracking-tight text-white bg-gradient-to-r from-white to-secondary-200 bg-clip-text text-transparent leading-tight">
+                Greener Pastures
+                <br />
+                Investment International Limited
+              </span>
+            </Link>
+            <p className="text-lg lg:text-xl text-ajo-200 font-light italic leading-relaxed">
+              building opportunities, securing futures.
             </p>
           </div>
         </div>
+
+        {/* Bottom Content - Empty now since quote and stats are removed */}
       </div>
 
       {/* Right Form Panel */}
       <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-20 xl:px-24">
         <div className="mx-auto w-full max-w-md">
-          <div className="lg:hidden mb-10 text-center">
-            <Link to="/" className="inline-flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-ajo-600 rounded-xl flex items-center justify-center shadow-sm">
-                <SproutIcon className="w-6 h-6 text-white" />
-              </div>
-              <span className="font-bold text-2xl tracking-tight text-ink">
-                Greener Pastures
-              </span>
-            </Link>
-          </div>
-
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-ink tracking-tight">
               Welcome back

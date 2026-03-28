@@ -40,6 +40,7 @@ export interface ApplyLoanRequest {
   requestedAmountNaira: number | string;
   reason: string;
   formUrl: string;
+  guarantorFormUrl: string;
   [key: string]: unknown;
 }
 

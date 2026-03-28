@@ -4,6 +4,7 @@ import {
   loginAdmin,
   loginUser,
   registerUser,
+  updateProfile,
   type AuthMeResponse,
   type LoginRequest,
   type LoginResponse,
@@ -39,5 +40,43 @@ export function useAuthMeQuery() {
       if (error instanceof ApiError && error.status === 401) return false;
       return failureCount < 2;
     }
+  });
+}
+
+export function useUpdateProfileMutation() {
+  return useMutation<AuthMeResponse, ApiError, {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    currentPassword?: string;
+    newPassword?: string;
+  }>({
+    mutationFn: async (variables) => {
+      console.log('=== UPDATE PROFILE MUTATION START ===');
+      console.log('📤 Variables sent to updateProfile:', variables);
+      
+      try {
+        const result = await updateProfile(variables);
+        console.log('✅ updateProfile API call successful:', result);
+        return result;
+      } catch (error) {
+        console.error('❌ updateProfile API call failed:', error);
+        throw error;
+      }
+    },
+    onSuccess: async (data) => {
+      console.log('✅ Update profile mutation onSuccess:', data);
+      // Invalidate auth me query to refresh user data
+      await new Promise(resolve => setTimeout(resolve, 100)); // Small delay for server to update
+    },
+    onError: (error) => {
+      console.error('❌ Update profile mutation onError:', error);
+      console.error('❌ Error details:', {
+        status: error.status,
+        message: error.message,
+        payload: error.payload
+      });
+    },
   });
 }

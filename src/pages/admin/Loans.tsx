@@ -225,7 +225,14 @@ export function Loans() {
         </div>
       ) : (
         <div className="space-y-4">
-          {paginatedLoans.map((loan) => (
+          {paginatedLoans.map((loan) => {
+            console.log('=== ADMIN LOAN DEBUG ===');
+            console.log('Full loan object:', loan);
+            console.log('guarantorFormUrl:', (loan as any).guarantorFormUrl);
+            console.log('formImagePath:', loan.formImagePath);
+            console.log('=== END ADMIN LOAN DEBUG ===');
+            
+            return (
             <Card key={loan.id} className="p-4">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -289,6 +296,19 @@ export function Loans() {
                   >
                     View Form
                   </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => {
+                      if ((loan as any).guarantorFormUrl) {
+                        window.open((loan as any).guarantorFormUrl, '_blank');
+                      } else {
+                        showErrorToast(new Error('No guarantor form available'), 'Guarantor form not available');
+                      }
+                    }}
+                  >
+                    View Guarantor Form
+                  </Button>
                   {loan.status === 'PENDING' && (
                     <>
                       <Button 
@@ -322,7 +342,8 @@ export function Loans() {
                 </div>
               </div>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
 

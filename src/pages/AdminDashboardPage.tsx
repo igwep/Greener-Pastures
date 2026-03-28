@@ -1,22 +1,14 @@
-import React, { useMemo, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Card } from "../components/ui/Card";
-import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
-import { Input } from "../components/ui/Input";
 import { Modal } from "../components/ui/Modal";
 import {
   UsersIcon,
   TargetIcon,
   WalletIcon,
-  AlertCircleIcon,
-  CheckIcon,
-  XIcon,
   SproutIcon,
   CreditCardIcon,
   FileTextIcon,
-  SearchIcon,
-  ChevronDownIcon,
   SettingsIcon,
   ShoppingBagIcon,
   LogOutIcon,
@@ -32,6 +24,8 @@ import { WithdrawalsPage } from "./admin/WithdrawalsPage";
 import { Repayments } from "./admin/Repayments";
 import { Settings } from "./admin/Settings";
 import { Marketplace } from "./admin/Marketplace";
+import { AddProductPage as AdminAddProductPage } from "./admin/AddProductPage";
+import { AdminPlansPage } from "./admin/AdminPlansPage";
 
 export function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -45,6 +39,8 @@ export function AdminDashboardPage() {
     | "repayments"
     | "settings"
     | "marketplace"
+    | "marketplaceAdd"
+    | "plans"
   >("overview");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
@@ -85,6 +81,7 @@ export function AdminDashboardPage() {
             { label: "Repayments", tab: "repayments", icon: FileTextIcon },
             { label: "Settings", tab: "settings", icon: SettingsIcon },
             { label: "Marketplace", tab: "marketplace", icon: ShoppingBagIcon },
+            { label: "Savings Plans", tab: "plans", icon: TargetIcon },
           ].map((item) => (
             <button
               key={item.tab}
@@ -146,6 +143,8 @@ export function AdminDashboardPage() {
               {activeTab === "repayments" && "Loan Repayments"}
               {activeTab === "settings" && "Settings"}
               {activeTab === "marketplace" && "Marketplace Management"}
+              {activeTab === "marketplaceAdd" && "Add Marketplace Product"}
+              {activeTab === "plans" && "Savings Plans"}
             </h1>
           </div>
 
@@ -156,7 +155,13 @@ export function AdminDashboardPage() {
           {activeTab === "withdrawals" && <WithdrawalsPage />}
           {activeTab === "repayments" && <Repayments />}
           {activeTab === "settings" && <Settings />}
-          {activeTab === "marketplace" && <Marketplace />}
+          {activeTab === "marketplace" && (
+            <Marketplace onAddProduct={() => setActiveTab("marketplaceAdd")} />
+          )}
+          {activeTab === "marketplaceAdd" && (
+            <AdminAddProductPage onBack={() => setActiveTab("marketplace")} />
+          )}
+          {activeTab === "plans" && <AdminPlansPage />}
         </motion.div>
       </main>
 

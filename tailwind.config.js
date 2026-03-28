@@ -1,10 +1,9 @@
-
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
-  './index.html',
-  './src/**/*.{js,ts,jsx,tsx}'
-],
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}'
+  ],
   theme: {
     extend: {
       colors: {
@@ -20,6 +19,19 @@ export default {
           800: '#166534',
           900: '#14532D',
           950: '#052E16',
+        },
+        secondary: {
+          50: '#FEFEE8',
+          100: '#FDFCC8',
+          200: '#FBF78D',
+          300: '#F7F046',
+          400: '#E7E127',
+          500: '#D6D91A',
+          600: '#B3B615',
+          700: '#8A8D11',
+          800: '#62640C',
+          900: '#3B3B07',
+          DEFAULT: '#D6D91A',
         },
         surface: {
           DEFAULT: '#F8FAF9',
@@ -46,4 +58,4 @@ export default {
     },
   },
   plugins: [],
-}
+};

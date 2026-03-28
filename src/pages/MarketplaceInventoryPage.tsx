@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card } from '../components/ui/Card';
@@ -6,6 +6,8 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import { Skeleton } from '../components/ui/Skeleton';
+import { Modal } from '../components/ui/Modal';
+import { MarketplaceInventorySkeleton } from '../components/skeleton/MarketplaceInventorySkeleton';
 import { 
   PackageIcon, 
   ClockIcon, 
@@ -15,15 +17,33 @@ import {
   SearchIcon,
   EditIcon,
   EyeIcon,
-  FilterIcon
+  EyeOffIcon,
+  FilterIcon,
+  Trash2Icon
 } from 'lucide-react';
-import { useMyProductsQuery } from '../services/marketplace/hooks';
+import { useMyProductsQuery, useDeleteProductMutation, useToggleProductActiveMutation } from '../services/marketplace/hooks';
 import type { Product } from '../schemas/marketplace';
+import { useToast } from '../contexts/ToastContext';
 
 export function MarketplaceInventoryPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'ACTIVE' | 'PENDING' | 'EXPIRED' | 'REJECTED'>('all');
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [toggleModalOpen, setToggleModalOpen] = useState(false);
+  const [productToToggle, setProductToToggle] = useState<Product | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 5;
   const { data: productsData, isLoading: isProductsLoading } = useMyProductsQuery();
+  const deleteProductMutation = useDeleteProductMutation();
+  const toggleProductActiveMutation = useToggleProductActiveMutation();
+  const toast = useToast();
+
+  console.log('=== INVENTORY PAGE DEBUG ===');
+  console.log('MarketplaceInventoryPage rendered!');
+  console.log('isLoading:', isProductsLoading);
+  console.log('productsData:', productsData);
+  console.log('=== END INVENTORY DEBUG ===');
 
   // Mock data for development
   const mockProducts: Product[] = [
@@ -40,6 +60,7 @@ export function MarketplaceInventoryPage() {
       instagramUrl: 'https://instagram.com/example',
       otherUrl: '',
       status: 'ACTIVE',
+      active: true,
       userId: '1',
       createdAt: '2024-01-15T10:30:00Z',
       updatedAt: '2024-01-15T10:30:00Z',
@@ -59,6 +80,7 @@ export function MarketplaceInventoryPage() {
       instagramUrl: '',
       otherUrl: '',
       status: 'PENDING',
+      active: false,
       userId: '1',
       createdAt: '2024-01-20T14:15:00Z',
       updatedAt: '2024-01-20T14:15:00Z',
@@ -77,6 +99,7 @@ export function MarketplaceInventoryPage() {
       instagramUrl: '',
       otherUrl: '',
       status: 'EXPIRED',
+      active: false,
       userId: '1',
       createdAt: '2023-12-01T09:00:00Z',
       updatedAt: '2023-12-01T09:00:00Z',
@@ -96,6 +119,7 @@ export function MarketplaceInventoryPage() {
       instagramUrl: '',
       otherUrl: '',
       status: 'REJECTED',
+      active: false,
       userId: '1',
       createdAt: '2024-01-10T16:45:00Z',
       updatedAt: '2024-01-11T09:20:00Z',
@@ -114,6 +138,7 @@ export function MarketplaceInventoryPage() {
       instagramUrl: '',
       otherUrl: '',
       status: 'ACTIVE',
+      active: true,
       userId: '1',
       createdAt: '2024-01-18T11:30:00Z',
       updatedAt: '2024-01-18T11:30:00Z',
@@ -124,15 +149,23 @@ export function MarketplaceInventoryPage() {
 
   const products = productsData?.products || mockProducts;
 
+  console.log('=== PRODUCTS DATA DEBUG ===');
+  console.log('Final products array:', products);
+  console.log('Products length:', products.length);
+  console.log('Using mock data?', !productsData?.products);
+  console.log('=== END PRODUCTS DEBUG ===');
+
   // Calculate statistics
   const stats = useMemo(() => {
     const total = products.length;
     const pending = products.filter((p: Product) => p.status === 'PENDING').length;
     const active = products.filter((p: Product) => p.status === 'ACTIVE').length;
+    const activeProducts = products.filter((p: Product) => p.active === true).length;
+    const inactiveProducts = products.filter((p: Product) => p.active === false).length;
     const expired = products.filter((p: Product) => p.status === 'EXPIRED').length;
     const rejected = products.filter((p: Product) => p.status === 'REJECTED').length;
 
-    return { total, pending, active, expired, rejected };
+    return { total, pending, active, activeProducts, inactiveProducts, expired, rejected };
   }, [products]);
 
   // Filter products based on search and status
@@ -144,6 +177,20 @@ export function MarketplaceInventoryPage() {
       return matchesSearch && matchesStatus;
     });
   }, [products, searchTerm, statusFilter]);
+
+  // Pagination logic
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * productsPerPage;
+    const endIndex = startIndex + productsPerPage;
+    return filteredProducts.slice(startIndex, endIndex);
+  }, [filteredProducts, currentPage, productsPerPage]);
+
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
 
   const getStatusColor = (status: string): 'success' | 'warning' | 'error' | 'info' | 'neutral' => {
     switch (status) {
@@ -165,31 +212,93 @@ export function MarketplaceInventoryPage() {
     }
   };
 
+  const handleToggleActive = async (product: Product) => {
+    setProductToToggle(product);
+    setToggleModalOpen(true);
+  };
+
+  const confirmToggle = async () => {
+    if (productToToggle) {
+      try {
+        await toggleProductActiveMutation.mutateAsync(productToToggle.id);
+        setToggleModalOpen(false);
+        
+        // Show success toast
+        if (productToToggle.active) {
+          toast.success('Product Deactivated', `"${productToToggle.title}" has been hidden from the marketplace.`);
+        } else {
+          toast.success('Product Activated', `"${productToToggle.title}" is now visible in the marketplace.`);
+        }
+        
+        setProductToToggle(null);
+      } catch (error) {
+        console.error('Failed to toggle product active status:', error);
+        toast.error('Action Failed', 'Unable to toggle product visibility. Please try again.');
+      }
+    }
+  };
+
+  const cancelToggle = () => {
+    setToggleModalOpen(false);
+    setProductToToggle(null);
+  };
+
+  const handleDelete = async (product: Product) => {
+    setProductToDelete(product);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (productToDelete) {
+      try {
+        await deleteProductMutation.mutateAsync(productToDelete.id);
+        setDeleteModalOpen(false);
+        
+        // Show success toast
+        toast.success('Product Deleted', `"${productToDelete.title}" has been permanently deleted.`);
+        
+        setProductToDelete(null);
+      } catch (error) {
+        console.error('Failed to delete product:', error);
+        toast.error('Delete Failed', 'Unable to delete product. Please try again.');
+      }
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModalOpen(false);
+    setProductToDelete(null);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-8 pb-12"
     >
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-ink tracking-tight">
-            My Marketplace Inventory
-          </h1>
-          <p className="text-ink-secondary mt-1">
-            Manage your product listings and track their performance
-          </p>
-        </div>
-        <Link to="/marketplace/add-product">
-          <Button className="flex items-center gap-2">
-            <PlusIcon className="w-4 h-4" />
-            Add Product
-          </Button>
-        </Link>
-      </div>
+      {isProductsLoading ? (
+        <MarketplaceInventorySkeleton />
+      ) : (
+        <>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-ink tracking-tight">
+                My Marketplace Inventory
+              </h1>
+              <p className="text-ink-secondary mt-1">
+                Manage your product listings and track their performance
+              </p>
+            </div>
+            <Link to="/marketplace/add-product">
+              <Button className="flex items-center gap-2">
+                <PlusIcon className="w-4 h-4" />
+                Add Product
+              </Button>
+            </Link>
+          </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-6">
         <Card className="p-6 rounded-2xl border-none shadow-sm bg-white">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
@@ -199,6 +308,28 @@ export function MarketplaceInventoryPage() {
           </div>
           <h3 className="text-sm font-semibold text-ink">Total Products</h3>
           <p className="text-xs text-ink-secondary mt-1">All listings</p>
+        </Card>
+
+        <Card className="p-6 rounded-2xl border-none shadow-sm bg-white">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
+              <CheckCircleIcon className="w-6 h-6 text-emerald-600" />
+            </div>
+            <span className="text-2xl font-bold text-ink">{stats.activeProducts}</span>
+          </div>
+          <h3 className="text-sm font-semibold text-ink">Active</h3>
+          <p className="text-xs text-ink-secondary mt-1">Live & visible</p>
+        </Card>
+
+        <Card className="p-6 rounded-2xl border-none shadow-sm bg-white">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center">
+              <XCircleIcon className="w-6 h-6 text-slate-600" />
+            </div>
+            <span className="text-2xl font-bold text-ink">{stats.inactiveProducts}</span>
+          </div>
+          <h3 className="text-sm font-semibold text-ink">Inactive</h3>
+          <p className="text-xs text-ink-secondary mt-1">Hidden listings</p>
         </Card>
 
         <Card className="p-6 rounded-2xl border-none shadow-sm bg-white">
@@ -219,7 +350,7 @@ export function MarketplaceInventoryPage() {
             </div>
             <span className="text-2xl font-bold text-ink">{stats.active}</span>
           </div>
-          <h3 className="text-sm font-semibold text-ink">Active</h3>
+          <h3 className="text-sm font-semibold text-ink">Approved</h3>
           <p className="text-xs text-ink-secondary mt-1">Live listings</p>
         </Card>
 
@@ -283,6 +414,7 @@ export function MarketplaceInventoryPage() {
           <h2 className="text-lg font-semibold text-ink">Product Listings</h2>
           <p className="text-sm text-ink-secondary mt-1">
             {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} found
+            {totalPages > 1 && ` (Page ${currentPage} of ${totalPages})`}
           </p>
         </div>
 
@@ -348,16 +480,30 @@ export function MarketplaceInventoryPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredProducts.map((product: Product) => {
+                {paginatedProducts.map((product: Product) => {
+                /*   console.log('=== RENDERING INVENTORY PRODUCT ===');
+                  console.log('Product ID:', product.id);
+                  console.log('Product title:', product.title);
+                  console.log('Product imageUrls:', product.imageUrls);
+                  console.log('ImageUrls type:', typeof product.imageUrls);
+                  console.log('ImageUrls length:', product.imageUrls?.length);
+                  console.log('First image URL:', product.imageUrls?.[0]);
+                  console.log('=== END INVENTORY PRODUCT DEBUG ==='); */
+                  
                   const StatusIcon = getStatusIcon(product.status);
                   return (
-                    <tr key={product.id} className="hover:bg-gray-50 transition-colors">
+                    <tr 
+                      key={product.id} 
+                      className={`hover:bg-gray-50 transition-colors ${
+                        product.active ? 'border-l-4 border-l-green-500 bg-green-50/30' : ''
+                      }`}
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
-                            {product.imageUrls[0] ? (
+                            {product.images && product.images.length > 0 && product.images[0]?.imagePath ? (
                               <img
-                                src={product.imageUrls[0]}
+                                src={product.images[0].imagePath}
                                 alt={product.title}
                                 className="w-full h-full object-cover"
                               />
@@ -383,10 +529,18 @@ export function MarketplaceInventoryPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <Badge variant={getStatusColor(product.status)} className="flex items-center gap-1 w-fit">
-                          <StatusIcon className="w-3 h-3" />
-                          {product.status}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={getStatusColor(product.status)} className="flex items-center gap-1">
+                            <StatusIcon className="w-3 h-3" />
+                            {product.status}
+                          </Badge>
+                          {product.active && (
+                            <Badge variant="success" className="flex items-center gap-1 text-xs">
+                              <CheckCircleIcon className="w-3 h-3" />
+                              ACTIVE
+                            </Badge>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-ink">
@@ -407,11 +561,30 @@ export function MarketplaceInventoryPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm">
-                            <EyeIcon className="w-4 h-4" />
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleToggleActive(product)}
+                            disabled={toggleProductActiveMutation.isPending}
+                            title={product.active ? 'Deactivate Product' : 'Activate Product'}
+                            className={product.active ? 'text-green-600 hover:text-green-700 hover:bg-green-50' : 'text-gray-600 hover:text-gray-700 hover:bg-gray-50'}
+                          >
+                            {product.active ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
                           </Button>
-                          <Button variant="ghost" size="sm">
-                            <EditIcon className="w-4 h-4" />
+                          <Link to={`/marketplace/edit-product/${product.id}`}>
+                            <Button variant="ghost" size="sm">
+                              <EditIcon className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDelete(product)}
+                            disabled={deleteProductMutation.isPending}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Delete Product"
+                          >
+                            <Trash2Icon className="w-4 h-4" />
                           </Button>
                         </div>
                       </td>
@@ -423,6 +596,147 @@ export function MarketplaceInventoryPage() {
           </div>
         )}
       </Card>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-ink-secondary">
+            Showing {((currentPage - 1) * productsPerPage) + 1} to {Math.min(currentPage * productsPerPage, filteredProducts.length)} of {filteredProducts.length} products
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1"
+            >
+              Previous
+            </Button>
+            
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? "primary" : "ghost"}
+                  size="sm"
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 px-0 py-0 ${
+                    currentPage === page 
+                      ? 'bg-ajo-600 text-white hover:bg-ajo-700' 
+                      : 'hover:bg-gray-100'
+                  }`}
+                >
+                  {page}
+                </Button>
+              ))}
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={cancelDelete}
+        title="Delete Product"
+        footer={
+          <div className="flex gap-3">
+            <Button
+              variant="ghost"
+              onClick={cancelDelete}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDelete}
+              isLoading={deleteProductMutation.isPending}
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trash2Icon className="w-8 h-8 text-red-600" />
+            </div>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <h3 className="text-lg font-semibold text-red-800 mb-2">
+                ⚠️ WARNING: Permanent Action
+              </h3>
+              <p className="text-red-700 text-sm font-medium">
+                You are about to permanently delete "{productToDelete?.title}"
+              </p>
+            </div>
+            <p className="text-ink-secondary">
+              This action <strong>cannot be undone</strong>. The product will be permanently deleted along with all associated images and payment records.
+            </p>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Toggle Active Confirmation Modal */}
+      <Modal
+        isOpen={toggleModalOpen}
+        onClose={cancelToggle}
+        title={productToToggle?.active ? "Deactivate Product" : "Activate Product"}
+        footer={
+          <div className="flex gap-3">
+            <Button
+              variant="ghost"
+              onClick={cancelToggle}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmToggle}
+              isLoading={toggleProductActiveMutation.isPending}
+              className={productToToggle?.active ? "flex-1 bg-orange-600 hover:bg-orange-700 text-white" : "flex-1 bg-green-600 hover:bg-green-700 text-white"}
+            >
+              {productToToggle?.active ? 'Deactivate' : 'Activate'}
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div className="text-center">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+              productToToggle?.active ? 'bg-orange-50' : 'bg-green-50'
+            }`}>
+              {productToToggle?.active ? 
+                <EyeOffIcon className="w-8 h-8 text-orange-600" /> : 
+                <EyeIcon className="w-8 h-8 text-green-600" />
+              }
+            </div>
+            <h3 className="text-lg font-semibold text-ink mb-2">
+              {productToToggle?.active ? 'Deactivate' : 'Activate'} "{productToToggle?.title}"?
+            </h3>
+            <p className="text-ink-secondary">
+              {productToToggle?.active 
+                ? 'This product will be hidden from the marketplace and will no longer be visible to buyers.'
+                : 'This product will become visible in the marketplace and buyers will be able to see and purchase it.'
+              }
+            </p>
+          </div>
+        </div>
+      </Modal>
+        </>
+      )}
     </motion.div>
   );
 }

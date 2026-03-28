@@ -71,7 +71,6 @@ export function WalletPage() {
   const filteredTransactions = useMemo(() => {
     if (activeTab === 'all') return transactions;
     if (activeTab === 'deposits') return transactions.filter((tx: any) => isDepositTx(tx) && !isContributionTx(tx));
-    if (activeTab === 'withdrawals') return transactions.filter((tx: any) => isWithdrawalTx(tx) && !isContributionTx(tx));
     if (activeTab === 'contributions') {
       return transactions
         .filter(isContributionTx)
@@ -176,14 +175,14 @@ export function WalletPage() {
           </div>
           <div className="flex gap-3">
             <Button
-              className="bg-white text-ajo-900 hover:bg-gray-100 rounded-xl h-10 px-4 text-sm font-semibold"
+              className="bg-secondary text-ajo-900 hover:bg-secondary/90 rounded-xl h-10 px-4 text-sm font-semibold shadow-sm"
               onClick={() => navigate('/dashboard')}>
               <PlusIcon className="w-4 h-4 mr-1.5" /> Add Money
             </Button>
             <Link to="/withdraw">
               <Button
                 variant="secondary"
-                className="bg-transparent border-ajo-700 text-white hover:bg-ajo-800 rounded-xl h-10 px-4 text-sm font-semibold">
+                className="bg-white/10 border border-white/20 text-white hover:bg-white/15 rounded-xl h-10 px-4 text-sm font-semibold">
                 
                 Withdraw
               </Button>
@@ -194,7 +193,7 @@ export function WalletPage() {
 
       <Card className="p-0 overflow-hidden rounded-3xl border border-gray-200 shadow-sm">
         <div className="border-b border-gray-200 px-8 flex gap-8 bg-gray-50">
-          {['all', 'deposits', 'withdrawals', 'contributions'].map((tab) =>
+          {['all', 'deposits', 'contributions'].map((tab) =>
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -231,9 +230,9 @@ export function WalletPage() {
                   <div className="flex items-center gap-2 mt-1.5">
                     <span className="text-sm text-gray-500">{tx.date}</span>
                     <span className="text-xs text-gray-300">•</span>
-                    <span className="text-xs text-gray-500 font-mono bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">
+                    {/* <span className="text-xs text-gray-500 font-mono bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">
                       {tx.ref}
-                    </span>
+                    </span> */}
                   </div>
                 </div>
               </div>

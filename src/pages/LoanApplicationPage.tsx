@@ -17,7 +17,7 @@ import {
   useApplyLoanMutation,
   useMyLoansQuery,
 } from "../services/loans/hooks";
-import { uploadImageToCloudinary } from "../services/cloudinary";
+import { uploadFileToCloudinary, uploadImageToCloudinary } from "../services/cloudinary";
 import { loanApplicationSchema, LoanApplicationFormData } from "../schemas/auth";
 import { z } from "zod";
 
@@ -31,6 +31,7 @@ export function LoanApplicationPage() {
   const [selectedLoanTypeId, setSelectedLoanTypeId] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [guarantorFile, setGuarantorFile] = useState<File | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPendingModal, setShowPendingModal] = useState(false);
@@ -45,6 +46,22 @@ export function LoanApplicationPage() {
     // Also clear server error when user starts typing
     if (serverError) {
       setServerError('');
+    }
+  };
+
+  const handleGuarantorFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        setFieldErrors(prev => ({ ...prev, guarantorFormUrl: "File size must be less than 10MB" }));
+        return;
+      }
+
+      setGuarantorFile(selectedFile);
+
+      if (fieldErrors.guarantorFormUrl) {
+        clearFieldError('guarantorFormUrl');
+      }
     }
   };
 
@@ -146,7 +163,8 @@ export function LoanApplicationPage() {
         loanTypeId: selectedLoanTypeId,
         requestedAmountNaira: amount,
         reason,
-        formUrl: filePreview || ''
+        formUrl: filePreview || '',
+        guarantorFormUrl: guarantorFile ? 'https://example.com/guarantor-form' : ''
       };
 
       const validatedData = loanApplicationSchema.parse(formData);
@@ -167,6 +185,7 @@ export function LoanApplicationPage() {
 
       // 1. Upload to Cloudinary
       const cloudinaryRes = await uploadImageToCloudinary(file!);
+      const guarantorCloudinaryRes = await uploadFileToCloudinary(guarantorFile!);
 
       // 2. Submit to backend
       await applyMutation.mutateAsync({
@@ -174,6 +193,7 @@ export function LoanApplicationPage() {
         requestedAmountNaira: validatedData.requestedAmountNaira,
         reason: validatedData.reason,
         formUrl: cloudinaryRes.secure_url,
+        guarantorFormUrl: guarantorCloudinaryRes.secure_url,
       });
 
       setIsSuccess(true);
@@ -223,6 +243,11 @@ export function LoanApplicationPage() {
   const handleDownloadForm = () => {
     // In a real app, this would be a link to a PDF
     alert("Downloading application form...");
+  };
+
+  const handleDownloadGuarantorForm = () => {
+    // In a real app, this would be a link to a PDF
+    alert("Downloading guarantor form...");
   };
 
   // Show loading state while checking for pending loans
@@ -342,14 +367,24 @@ export function LoanApplicationPage() {
             Complete the form below to apply for a Quick or Salary Loan.
           </p>
         </div>
-        <Button
-          variant="secondary"
-          className="rounded-xl flex items-center gap-2 border-ajo-200 text-ajo-700 hover:bg-ajo-50"
-          onClick={handleDownloadForm}
-        >
-          <DownloadIcon className="w-4 h-4" />
-          Download Loan Form
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button
+            variant="secondary"
+            className="rounded-xl flex items-center gap-2 border-ajo-200 text-ajo-700 hover:bg-ajo-50"
+            onClick={handleDownloadForm}
+          >
+            <DownloadIcon className="w-4 h-4" />
+            Download Loan Form
+          </Button>
+          <Button
+            variant="secondary"
+            className="rounded-xl flex items-center gap-2 border-ajo-200 text-ajo-700 hover:bg-ajo-50"
+            onClick={handleDownloadGuarantorForm}
+          >
+            <DownloadIcon className="w-4 h-4" />
+            Download Guarantor Form
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -496,6 +531,51 @@ export function LoanApplicationPage() {
                 <p className="mt-2 text-sm text-red-600">{fieldErrors.formUrl}</p>
               )}
 
+              <div>
+                <label className="block text-sm font-bold text-ink mb-2">
+                  Upload Guarantor Form
+                </label>
+                <div
+                  className={`relative border-2 border-dashed rounded-2xl p-8 transition-all flex flex-col items-center justify-center text-center ${guarantorFile ? "border-ajo-500 bg-ajo-50/30" : "border-gray-200 hover:border-ajo-300"}`}
+                >
+                  <input
+                    type="file"
+                    onChange={handleGuarantorFileChange}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    accept="image/*,application/pdf"
+                  />
+
+                  {guarantorFile ? (
+                    <div className="space-y-4">
+                      <FileTextIcon className="w-16 h-16 text-ajo-500 mx-auto" />
+                      <div>
+                        <p className="text-sm font-bold text-ink">
+                          {guarantorFile.name}
+                        </p>
+                        <p className="text-xs text-ink-secondary mt-1">
+                          Click or drag to replace
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 bg-gray-50 text-ink-muted rounded-full flex items-center justify-center mb-4">
+                        <UploadIcon className="w-8 h-8" />
+                      </div>
+                      <p className="text-sm font-bold text-ink">
+                        Click to upload or drag and drop
+                      </p>
+                      <p className="text-xs text-ink-secondary mt-1">
+                        Upload the filled guarantor form (PDF or image)
+                      </p>
+                    </>
+                  )}
+                </div>
+                {fieldErrors.guarantorFormUrl && (
+                  <p className="mt-2 text-sm text-red-600">{fieldErrors.guarantorFormUrl}</p>
+                )}
+              </div>
+
               {serverError && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
                   <p className="text-sm text-red-600">{serverError}</p>
@@ -551,7 +631,7 @@ export function LoanApplicationPage() {
                   1
                 </div>
                 <p className="text-sm text-ajo-100 leading-relaxed">
-                  Download the official loan application form.
+                  Download the official loan application form and guarantor form.
                 </p>
               </li>
               <li className="flex gap-4">
@@ -559,7 +639,7 @@ export function LoanApplicationPage() {
                   2
                 </div>
                 <p className="text-sm text-ajo-100 leading-relaxed">
-                  Print and fill out the form with accurate details.
+                  Print and fill out both forms with accurate details.
                 </p>
               </li>
               <li className="flex gap-4">
@@ -567,7 +647,7 @@ export function LoanApplicationPage() {
                   3
                 </div>
                 <p className="text-sm text-ajo-100 leading-relaxed">
-                  Sign the document and take a clear photo or scan it.
+                  Sign the documents and take a clear photo/scan of the loan form and guarantor form.
                 </p>
               </li>
               <li className="flex gap-4">
@@ -575,7 +655,7 @@ export function LoanApplicationPage() {
                   4
                 </div>
                 <p className="text-sm text-ajo-100 leading-relaxed">
-                  Upload the document and submit your application.
+                  Upload both documents and submit your application.
                 </p>
               </li>
             </ul>

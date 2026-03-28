@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
-  useAdminDashboardQuery,
   useUpdateTransferAccountMutation,
+  useTransferAccountQuery,
 } from "../../services/admin/hooks";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
@@ -9,20 +9,21 @@ import { Card } from "../../components/ui/Card";
 import { showSuccessToast, showErrorToast } from "../../utils/toast";
 
 export function Settings() {
-  const { data: dashboard, isLoading } = useAdminDashboardQuery();
+  const { data: transferAccountData, isLoading: transferAccountLoading } = useTransferAccountQuery();
   const mutation = useUpdateTransferAccountMutation();
 
   const [bankName, setBankName] = useState("");
   const [accountName, setAccountName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
 
+  // Prefill from transfer account API
   useEffect(() => {
-    if (dashboard?.transferAccount) {
-      setBankName(dashboard.transferAccount.bankName);
-      setAccountName(dashboard.transferAccount.accountName);
-      setAccountNumber(dashboard.transferAccount.accountNumber);
+    if (transferAccountData?.transferAccount) {
+      setBankName(transferAccountData.transferAccount.bankName);
+      setAccountName(transferAccountData.transferAccount.accountName);
+      setAccountNumber(transferAccountData.transferAccount.accountNumber);
     }
-  }, [dashboard]);
+  }, [transferAccountData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +35,7 @@ export function Settings() {
     }
   };
 
-  if (isLoading) {
+  if (transferAccountLoading) {
     return <p>Loading settings...</p>;
   }
 

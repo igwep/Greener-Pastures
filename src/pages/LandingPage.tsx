@@ -13,7 +13,6 @@ import {
   ShieldCheckIcon,
   WalletIcon,
   ArrowRightIcon,
-  SproutIcon,
   StarIcon,
   FlameIcon } from
 'lucide-react';
@@ -47,7 +46,7 @@ export function LandingPage() {
       {/* Hero Section */}
       <section className="md:pt-16 pt-6 pb-32 px-4 overflow-hidden relative">
         {/* Decorative background elements */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[90vw] max-w-[800px] h-[600px] bg-gradient-to-b from-ajo-50 to-transparent rounded-full blur-3xl -z-10 opacity-70"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[90vw] max-w-[800px] h-[600px] bg-gradient-to-b from-secondary-50 to-transparent rounded-full blur-3xl -z-10 opacity-70"></div>
 
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
           <motion.div
@@ -58,17 +57,17 @@ export function LandingPage() {
             
             <Badge
               variant="success"
-              className="mb-8 px-4 py-1.5 text-sm rounded-full bg-ajo-100 text-ajo-800 border border-ajo-200">
+              className="mb-8 px-4 py-1.5 text-sm rounded-full bg-secondary-100 text-ink border border-secondary-200">
               
-              🌱 Trusted by 10,000+ savers
+              Trusted by 10,000+ savers
             </Badge>
             <h1 className="text-5xl lg:text-7xl font-bold text-ink leading-[1.1] mb-6 tracking-tight">
               Your money,
               <br />
-              <span className="text-ajo-600 relative">
+              <span className="text-secondary-700 relative">
                 growing daily.
                 <svg
-                  className="absolute w-full h-3 -bottom-1 left-0 text-ajo-200 -z-10"
+                  className="absolute w-full h-3 -bottom-1 left-0 text-secondary-200 -z-10"
                   viewBox="0 0 100 10"
                   preserveAspectRatio="none">
                   
@@ -158,7 +157,7 @@ export function LandingPage() {
               duration: 0.8,
               delay: 0.2
             }}
-            className="relative lg:ml-auto w-full max-w-md">
+            className="relative lg:ml-auto w-full max-w-md mx-auto lg:mx-0">
             
             {/* Floating Badges */}
             <motion.div
@@ -198,10 +197,10 @@ export function LandingPage() {
               <p className="text-xs text-ink-muted font-medium mb-1">
                 Total Saved
               </p>
-              <p className="text-xl font-bold text-ajo-600">₦18,000</p>
+              <p className="text-xl font-bold text-secondary-700">₦18,000</p>
             </motion.div>
 
-            <div className="absolute inset-0 bg-gradient-to-tr from-ajo-200 to-ajo-50 rounded-[2.5rem] transform rotate-3 scale-105 -z-10"></div>
+            <div className="absolute inset-0 bg-gradient-to-tr from-secondary-200 to-secondary-50 rounded-[2.5rem] transform rotate-3 scale-105 -z-10"></div>
             <Card className="border border-gray-100 shadow-2xl rounded-[2rem] p-8 bg-white/95 backdrop-blur-sm relative z-10">
               <div className="flex items-center justify-between mb-8">
                 <div>
@@ -212,7 +211,7 @@ export function LandingPage() {
                 </div>
                 <Badge
                   variant="success"
-                  className="bg-ajo-100 text-ajo-700 border border-ajo-200">
+                  className="bg-secondary-100 text-ink border border-secondary-200">
                   
                   Active
                 </Badge>
@@ -235,7 +234,7 @@ export function LandingPage() {
                   return (
                     <div
                       key={i}
-                      className={`aspect-square rounded-xl flex items-center justify-center text-sm font-bold transition-all ${isPaid ? 'bg-ajo-500 text-white shadow-sm' : isPending ? 'bg-white text-amber-600 border-2 border-amber-400 shadow-sm ring-4 ring-amber-50' : 'bg-surface text-ink-muted border border-gray-100'}`}>
+                      className={`aspect-square rounded-xl flex items-center justify-center text-sm font-bold transition-all ${isPaid ? 'bg-secondary-500 text-white shadow-sm' : isPending ? 'bg-white text-amber-600 border-2 border-amber-400 shadow-sm ring-4 ring-amber-50' : 'bg-surface text-ink-muted border border-gray-100'}`}>
                       
                       {isPaid ? <CheckCircleIcon className="w-5 h-5" /> : i + 1}
                     </div>);
@@ -266,7 +265,7 @@ export function LandingPage() {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-20">
-            <p className="text-sm font-bold tracking-widest text-ajo-600 uppercase mb-3">
+            <p className="text-sm font-bold tracking-widest text-secondary-700 uppercase mb-3">
               Simple Process
             </p>
             <h2 className="text-4xl md:text-5xl font-bold text-ink mb-6 tracking-tight">
@@ -318,7 +317,7 @@ export function LandingPage() {
                 <div className="absolute -top-6 -right-4 text-[80px] sm:text-[100px] md:text-[120px] font-black text-gray-50/80 leading-none select-none -z-10">
                   {step.num}
                 </div>
-                <div className="w-16 h-16 bg-ajo-50 rounded-2xl flex items-center justify-center mb-8 text-ajo-600 border border-ajo-100 shadow-sm">
+                <div className="w-16 h-16 bg-secondary-50 rounded-2xl flex items-center justify-center mb-8 text-secondary-700 border border-secondary-100 shadow-sm">
                   <step.icon className="w-8 h-8" />
                 </div>
                 <h3 className="text-2xl font-bold text-ink mb-4">
@@ -333,158 +332,96 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Popular Plans */}
-      <section id="plans" className="py-32 bg-surface">
+      <section className="py-28 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <p className="text-sm font-bold tracking-widest text-ajo-600 uppercase mb-3">
-              Flexible Options
-            </p>
-            <h2 className="text-4xl md:text-5xl font-bold text-ink mb-6 tracking-tight">
-              Savings Plans for Everyone
-            </h2>
-            <p className="text-xl text-ink-secondary max-w-2xl mx-auto">
-              Start small or go big. Choose a plan that matches your financial
-              capacity.
-            </p>
-          </div>
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <div>
+              <p className="text-sm font-bold tracking-widest text-secondary-700 uppercase mb-3">
+                Marketplace
+              </p>
+              <h2 className="text-4xl md:text-5xl font-bold text-ink mb-6 tracking-tight">
+                Discover deals. List your products. Sell faster.
+              </h2>
+              <p className="text-xl text-ink-secondary leading-relaxed mb-8">
+                Explore items posted by the community. When you’re ready to sell, sign in to create a listing, upload photos, choose a category, and manage your products from your dashboard.
+              </p>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
-            {/* Starter Plan */}
-            <Card className="animated-border relative flex flex-col p-10 rounded-[2rem] border-none shadow-md overflow-visible bg-white">
-              <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center mb-8 text-ink-secondary">
-                <TargetIcon className="w-6 h-6" />
-              </div>
-              <h3 className="text-2xl font-bold text-ink mb-2">Starter Plan</h3>
-              <p className="text-ink-secondary mb-6">Perfect for beginners</p>
-              <div className="flex items-end gap-1 mb-8 pb-8 border-b border-gray-100">
-                <span className="text-5xl font-black text-ink tracking-tight">
-                  ₦500
-                </span>
-                <span className="text-ink-muted mb-1 font-medium">/day</span>
-              </div>
-              <ul className="space-y-5 mb-10 flex-1">
-                <li className="flex items-center gap-4 text-ink-secondary font-medium">
-                  <div className="w-6 h-6 rounded-full bg-ajo-50 flex items-center justify-center text-ajo-600 shrink-0">
+              <div className="space-y-4 mb-10">
+                <div className="flex items-start gap-4">
+                  <div className="w-6 h-6 rounded-full bg-secondary-50 flex items-center justify-center text-secondary-700 shrink-0">
                     <CheckCircleIcon className="w-4 h-4" />
                   </div>
-                  30 days duration
-                </li>
-                <li className="flex items-center gap-4 text-ink-secondary font-medium">
-                  <div className="w-6 h-6 rounded-full bg-ajo-50 flex items-center justify-center text-ajo-600 shrink-0">
+                  <p className="text-ink-secondary font-medium">
+                    Filter by categories and find what you need quickly.
+                  </p>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-6 h-6 rounded-full bg-secondary-50 flex items-center justify-center text-secondary-700 shrink-0">
                     <CheckCircleIcon className="w-4 h-4" />
                   </div>
-                  ₦15,000 total payout
-                </li>
-              </ul>
-              <Link to="/register" className="mt-auto">
-                <Button
-                  variant="secondary"
-                  className="w-full rounded-xl h-14 text-lg border-gray-200">
-                  
-                  Join Starter
-                </Button>
-              </Link>
-            </Card>
-
-            {/* Growth Plan (Popular) */}
-            <Card className="animated-border animated-border-dark relative flex flex-col p-10 rounded-[2rem] border-none shadow-2xl scale-105 z-10 bg-ajo-900 text-white overflow-visible">
-              {/* Decorative mesh/gradient */}
-              <div className="absolute top-0 right-0 w-32 sm:w-48 md:w-64 h-32 sm:h-48 md:h-64 bg-ajo-500 opacity-20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-              <div className="absolute bottom-0 left-0 w-32 sm:w-48 md:w-64 h-32 sm:h-48 md:h-64 bg-ajo-700 opacity-30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3"></div>
-
-              <div className="absolute top-0 inset-x-0 flex justify-center -mt-4">
-                <span className="bg-ajo-400 text-ajo-950 px-4 py-1.5 rounded-full text-sm font-bold shadow-lg">
-                  Most Popular
-                </span>
+                  <p className="text-ink-secondary font-medium">
+                    Add multiple images to show your product clearly.
+                  </p>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="w-6 h-6 rounded-full bg-secondary-50 flex items-center justify-center text-secondary-700 shrink-0">
+                    <CheckCircleIcon className="w-4 h-4" />
+                  </div>
+                  <p className="text-ink-secondary font-medium">
+                    Share contact details so buyers can reach you instantly.
+                  </p>
+                </div>
               </div>
 
-              <div className="relative z-10">
-                <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-8 text-ajo-300 backdrop-blur-sm">
-                  <TrendingUpIcon className="w-6 h-6" />
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  Growth Plan
-                </h3>
-                <p className="text-ajo-200 mb-6">For consistent savers</p>
-                <div className="flex items-end gap-1 mb-8 pb-8 border-b border-white/10">
-                  <span className="text-5xl font-black text-white tracking-tight">
-                    ₦1,000
-                  </span>
-                  <span className="text-ajo-300 mb-1 font-medium">/day</span>
-                </div>
-                <ul className="space-y-5 mb-10 flex-1">
-                  <li className="flex items-center gap-4 text-ajo-100 font-medium">
-                    <div className="w-6 h-6 rounded-full bg-ajo-500/30 flex items-center justify-center text-ajo-300 shrink-0">
-                      <CheckCircleIcon className="w-4 h-4" />
-                    </div>
-                    30 days duration
-                  </li>
-                  <li className="flex items-center gap-4 text-ajo-100 font-medium">
-                    <div className="w-6 h-6 rounded-full bg-ajo-500/30 flex items-center justify-center text-ajo-300 shrink-0">
-                      <CheckCircleIcon className="w-4 h-4" />
-                    </div>
-                    ₦30,000 total payout
-                  </li>
-                  <li className="flex items-center gap-4 text-ajo-100 font-medium">
-                    <div className="w-6 h-6 rounded-full bg-ajo-500/30 flex items-center justify-center text-ajo-300 shrink-0">
-                      <CheckCircleIcon className="w-4 h-4" />
-                    </div>
-                    Marketplace access
-                  </li>
-                </ul>
-                <Link to="/register" className="mt-auto">
-                  <Button className="w-full rounded-xl h-14 text-lg bg-white text-ajo-900 hover:bg-gray-100">
-                    Join Growth
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link to="/marketplace" className="sm:w-auto">
+                  <Button size="lg" className="w-full sm:w-auto rounded-xl h-14 px-8">
+                    Browse Marketplace
+                  </Button>
+                </Link>
+                <Link to="/login" className="sm:w-auto">
+                  <Button size="lg" variant="secondary" className="w-full sm:w-auto rounded-xl h-14 px-8 border-gray-200">
+                    Sign in to List a Product
                   </Button>
                 </Link>
               </div>
-            </Card>
+            </div>
 
-            {/* Premium Plan */}
-            <Card className="animated-border relative flex flex-col p-10 rounded-[2rem] border-none shadow-md overflow-visible bg-white">
-              <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center mb-8 text-ink-secondary">
-                <ShieldCheckIcon className="w-6 h-6" />
-              </div>
-              <h3 className="text-2xl font-bold text-ink mb-2">Premium Plan</h3>
-              <p className="text-ink-secondary mb-6">
-                For serious wealth building
-              </p>
-              <div className="flex items-end gap-1 mb-8 pb-8 border-b border-gray-100">
-                <span className="text-5xl font-black text-ink tracking-tight">
-                  ₦5,000
-                </span>
-                <span className="text-ink-muted mb-1 font-medium">/day</span>
-              </div>
-              <ul className="space-y-5 mb-10 flex-1">
-                <li className="flex items-center gap-4 text-ink-secondary font-medium">
-                  <div className="w-6 h-6 rounded-full bg-ajo-50 flex items-center justify-center text-ajo-600 shrink-0">
-                    <CheckCircleIcon className="w-4 h-4" />
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-tr from-secondary-200 to-secondary-50 rounded-[2.5rem] transform -rotate-2 scale-105 -z-10"></div>
+              <Card className="border border-gray-100 shadow-2xl rounded-[2rem] p-10 bg-white/95 backdrop-blur-sm">
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h3 className="text-lg font-bold text-ink">Marketplace Highlights</h3>
+                    <p className="text-sm text-ink-muted">A quick look at what’s trending</p>
                   </div>
-                  30 days duration
-                </li>
-                <li className="flex items-center gap-4 text-ink-secondary font-medium">
-                  <div className="w-6 h-6 rounded-full bg-ajo-50 flex items-center justify-center text-ajo-600 shrink-0">
-                    <CheckCircleIcon className="w-4 h-4" />
+                  <Badge className="bg-secondary-100 text-ink border border-secondary-200">Live</Badge>
+                </div>
+                <div className="space-y-4">
+                  <div className="p-5 rounded-2xl bg-surface border border-gray-100 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-ink">Electronics</p>
+                      <p className="text-sm text-ink-muted">Phones, laptops, gadgets</p>
+                    </div>
+                    <span className="text-sm font-bold text-secondary-700">Popular</span>
                   </div>
-                  ₦150,000 total payout
-                </li>
-                <li className="flex items-center gap-4 text-ink-secondary font-medium">
-                  <div className="w-6 h-6 rounded-full bg-ajo-50 flex items-center justify-center text-ajo-600 shrink-0">
-                    <CheckCircleIcon className="w-4 h-4" />
+                  <div className="p-5 rounded-2xl bg-surface border border-gray-100 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-ink">Home & Garden</p>
+                      <p className="text-sm text-ink-muted">Furniture, decor, essentials</p>
+                    </div>
+                    <span className="text-sm font-bold text-secondary-700">New</span>
                   </div>
-                  Priority support
-                </li>
-              </ul>
-              <Link to="/register" className="mt-auto">
-                <Button
-                  variant="secondary"
-                  className="w-full rounded-xl h-14 text-lg border-gray-200">
-                  
-                  Join Premium
-                </Button>
-              </Link>
-            </Card>
+                  <div className="p-5 rounded-2xl bg-surface border border-gray-100 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-ink">Services</p>
+                      <p className="text-sm text-ink-muted">Skilled work and labor</p>
+                    </div>
+                    <span className="text-sm font-bold text-secondary-700">Hot</span>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
@@ -598,113 +535,6 @@ export function LandingPage() {
           </div>
         </div>
       </section>
-
-      {/* Expanded Footer */}
-      <footer className="bg-white border-t border-gray-100 pt-20 pb-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-            <div className="col-span-1 md:col-span-1">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-ajo-600 rounded-xl flex items-center justify-center shadow-sm">
-                  <SproutIcon className="w-6 h-6 text-white" />
-                </div>
-                <span className="font-bold text-xl text-ink">
-                  Greener Pastures
-                </span>
-              </div>
-              <p className="text-ink-secondary leading-relaxed">
-                Building wealth, one day at a time. The modern digital Ajo
-                platform for Nigerians.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-bold text-ink mb-6">Product</h4>
-              <ul className="space-y-4 text-ink-secondary">
-                <li>
-                  <a href="#" className="hover:text-ajo-600 transition-colors">
-                    How it Works
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-ajo-600 transition-colors">
-                    Savings Plans
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-ajo-600 transition-colors">
-                    Marketplace
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-ajo-600 transition-colors">
-                    Pricing
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold text-ink mb-6">Company</h4>
-              <ul className="space-y-4 text-ink-secondary">
-                <li>
-                  <a href="#" className="hover:text-ajo-600 transition-colors">
-                    About Us
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-ajo-600 transition-colors">
-                    Careers
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-ajo-600 transition-colors">
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-ajo-600 transition-colors">
-                    Press
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold text-ink mb-6">Legal</h4>
-              <ul className="space-y-4 text-ink-secondary">
-                <li>
-                  <a href="#" className="hover:text-ajo-600 transition-colors">
-                    Terms of Service
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-ajo-600 transition-colors">
-                    Privacy Policy
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-ajo-600 transition-colors">
-                    Security
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-ink-muted text-sm">
-              © 2026 Greener Pastures Inc. All rights reserved.
-            </p>
-            <div className="flex gap-4">
-              {/* Social placeholders */}
-              <div className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"></div>
-              <div className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"></div>
-              <div className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"></div>
-            </div>
-          </div>
-        </div>
-      </footer>
     </PublicLayout>
   );
 }

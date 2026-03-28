@@ -1,28 +1,107 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
+import { usePublicProductQuery } from '../services/marketplace/hooks';
+import { getStoredUser } from '../services/auth/session';
+import { PublicLayout } from '../components/layout/PublicLayout';
 import {
   ArrowLeftIcon,
-  StarIcon,
-  ShieldCheckIcon,
-  TruckIcon } from
-'lucide-react';
+  EditIcon,
+  CopyIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
+} from 'lucide-react';
 export function ProductPage() {
   const { id } = useParams();
+  const { data: productData, isLoading, error } = usePublicProductQuery(id || '');
+  const [isOwner, setIsOwner] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const storedUser = getStoredUser();
+  const product = productData?.product;
+
+  // Get all images from either images array or imageUrls array
+  const allImages = product?.images?.map(img => img.imagePath) || product?.imageUrls || [];
+  const hasMultipleImages = allImages.length > 1;
+  const currentImage = allImages[currentImageIndex] || allImages[0];
+
+  const goToPreviousImage = () => {
+    setCurrentImageIndex(prev => prev === 0 ? allImages.length - 1 : prev - 1);
+  };
+
+  const goToNextImage = () => {
+    setCurrentImageIndex(prev => prev === allImages.length - 1 ? 0 : prev + 1);
+  };
+
+  useEffect(() => {
+    if (product && storedUser) {
+      setIsOwner(product.userId === storedUser.id);
+    }
+  }, [product, storedUser]);
+
+  // Keyboard navigation for images
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!hasMultipleImages) return;
+      
+      if (e.key === 'ArrowLeft') {
+        goToPreviousImage();
+      } else if (e.key === 'ArrowRight') {
+        goToNextImage();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [hasMultipleImages]);
+
+  if (isLoading) {
+    return (
+      <PublicLayout>
+        <div className="max-w-7xl mx-auto space-y-8 pb-12 md:pt-16 pt-6 px-4">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+            <div className="grid md:grid-cols-2 gap-10">
+              <div className="aspect-square bg-gray-200 rounded-[2rem]"></div>
+              <div className="space-y-4">
+                <div className="h-12 bg-gray-200 rounded"></div>
+                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-16 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </PublicLayout>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <PublicLayout>
+        <div className="max-w-7xl mx-auto space-y-8 pb-12 md:pt-16 pt-6 px-4 text-center">
+          <h1 className="text-2xl font-bold text-ink">Product not found</h1>
+          <p className="text-ink-secondary">The product you're looking for doesn't exist or has been removed.</p>
+          <Link to="/marketplace">
+            <Button>Back to Marketplace</Button>
+          </Link>
+        </div>
+      </PublicLayout>
+    );
+  }
   return (
-    <motion.div
-      initial={{
-        opacity: 0,
-        y: 20
-      }}
-      animate={{
-        opacity: 1,
-        y: 0
-      }}
-      className="space-y-8 max-w-6xl mx-auto pb-12">
+    <PublicLayout>
+      <motion.div
+        initial={{
+          opacity: 0,
+          y: 20
+        }}
+        animate={{
+          opacity: 1,
+          y: 0
+        }}
+        className="space-y-8 max-w-7xl mx-auto pb-12 md:pt-16 pt-6 px-4">
       
       <Link
         to="/marketplace"
@@ -33,104 +112,100 @@ export function ProductPage() {
       </Link>
 
       <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
-        <div className="rounded-[2rem] overflow-hidden bg-surface aspect-square border border-gray-100 shadow-sm">
-          <img
-            src="https://images.unsplash.com/photo-1632661674596-df8be070a5c5?auto=format&fit=crop&q=80&w=800&h=800"
-            alt="Product"
-            className="w-full h-full object-cover" />
+        <div className="rounded-[2rem] overflow-hidden bg-surface aspect-square border border-gray-100 shadow-sm relative">
+          {currentImage ? (
+            <img
+              src={currentImage}
+              alt={product.title}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+              <div className="text-gray-400 text-center">
+                <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-2"></div>
+                <p className="text-sm">No Image</p>
+              </div>
+            </div>
+          )}
           
+          {hasMultipleImages && (
+            <>
+              {/* Navigation arrows */}
+              <button
+                onClick={goToPreviousImage}
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition-colors"
+              >
+                <ChevronLeftIcon className="w-5 h-5" />
+              </button>
+              <button
+                onClick={goToNextImage}
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-white transition-colors"
+              >
+                <ChevronRightIcon className="w-5 h-5" />
+              </button>
+              
+              {/* Image indicators */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                {allImages.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         <div className="flex flex-col py-4">
-          <Badge variant="neutral" className="w-fit mb-6 px-3 py-1">
-            Electronics
-          </Badge>
+          <div className="flex items-center justify-between mb-6">
+            <Badge variant="neutral" className="w-fit px-3 py-1">
+              {product.categoryId || 'General'}
+            </Badge>
+            {isOwner && (
+              <Link to={`/marketplace/edit-product/${product.id}`}>
+                <Button variant="secondary" size="sm" className="flex items-center gap-2">
+                  <EditIcon className="w-4 h-4" />
+                  Edit Product
+                </Button>
+              </Link>
+            )}
+          </div>
           <h1 className="text-4xl font-bold text-ink mb-4 tracking-tight">
-            iPhone 13 Pro - 256GB
+            {product.title}
           </h1>
           <div className="flex items-center gap-4 mb-8">
-            <div className="flex items-center gap-1.5 text-sm font-bold text-ink bg-amber-50 px-2.5 py-1 rounded-md text-amber-700">
-              <StarIcon className="w-4 h-4 fill-current" />
-              4.8 (24 reviews)
-            </div>
-            <span className="text-gray-300">•</span>
             <span className="text-sm font-medium text-ink-secondary">
-              Condition: Used - Like New
+              Status: {product.status}
             </span>
           </div>
 
           <p className="text-5xl font-black text-ajo-600 mb-10 tracking-tight">
-            ₦450,000
+            ₦{Number(product.priceNaira).toLocaleString()}
           </p>
 
           <div className="space-y-4 mb-10 text-ink-secondary leading-relaxed text-lg">
-            <p>
-              Pristine condition iPhone 13 Pro with 256GB storage. Battery
-              health is at 92%. Comes with original box and charging cable. No
-              scratches or dents.
-            </p>
-            <ul className="list-disc pl-5 space-y-2 mt-4 font-medium">
-              <li>Sierra Blue color</li>
-              <li>Unlocked to all networks</li>
-              <li>Face ID works perfectly</li>
-            </ul>
+            <p>{product.description}</p>
           </div>
 
           <div className="mt-auto space-y-6">
-            <div className="flex items-center gap-4 p-5 bg-ajo-50 rounded-2xl border border-ajo-100">
-              <ShieldCheckIcon className="w-6 h-6 text-ajo-600 shrink-0" />
-              <span className="text-sm font-bold text-ajo-900">
-                Greener Pastures Buyer Protection included
-              </span>
-            </div>
-
             <div className="flex gap-4">
               <Button
                 className="flex-1 rounded-xl h-14 text-lg shadow-md"
-                size="lg">
-                
-                Buy with Wallet
-              </Button>
-              <Button
-                variant="secondary"
-                className="rounded-xl h-14 px-8 text-lg border-gray-200"
-                size="lg">
-                
-                Contact Seller
+                size="lg"
+                onClick={() => navigator.clipboard.writeText(product.phoneNumber)}
+              >
+                <CopyIcon className="w-4 h-4 mr-2" />
+                Copy Phone Number
               </Button>
             </div>
-            <p className="text-center text-sm font-medium text-ink-muted">
-              Your wallet balance: <span className="text-ink">₦25,500</span>
-            </p>
           </div>
         </div>
       </div>
-
-      <Card className="mt-16 p-8 rounded-3xl border border-gray-100 shadow-sm">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-ink-muted mb-6">
-          About the Seller
-        </h3>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-2xl bg-surface border border-gray-200 text-ink flex items-center justify-center text-2xl font-black">
-              C
-            </div>
-            <div>
-              <p className="font-bold text-ink text-xl mb-1">Chinedu E.</p>
-              <p className="text-sm font-medium text-ink-secondary">
-                Member since Jan 2025
-              </p>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="flex items-center gap-1.5 text-sm font-bold text-ink justify-end mb-2">
-              <StarIcon className="w-5 h-5 fill-amber-400 text-amber-400" />
-              4.8 Rating
-            </div>
-            <p className="text-sm font-medium text-ink-muted">12 items sold</p>
-          </div>
-        </div>
-      </Card>
-    </motion.div>);
-
+    </motion.div>
+    </PublicLayout>
+  );
 }

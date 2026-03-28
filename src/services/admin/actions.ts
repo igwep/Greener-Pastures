@@ -216,6 +216,27 @@ export async function getAdminUserFullData(userId: string, signal?: AbortSignal)
   });
 }
 
+export type TransferAccount = {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+};
+
+export async function getTransferAccount(signal?: AbortSignal) {
+  try {
+    const result = await apiRequest<{ transferAccount: TransferAccount }>('/api/v1/transfer-account', { signal });
+    console.log("=== GET TRANSFER ACCOUNT SUCCESS ===");
+    console.log("Response:", result);
+    console.log("=== END GET TRANSFER ACCOUNT SUCCESS ===");
+    return result;
+  } catch (error) {
+    console.error("=== GET TRANSFER ACCOUNT ERROR ===");
+    console.error("Error:", error);
+    console.error("=== END GET TRANSFER ACCOUNT ERROR ===");
+    throw error;
+  }
+}
+
 export type UpdateTransferAccountRequest = {
   bankName: string;
   accountName: string;
@@ -223,10 +244,24 @@ export type UpdateTransferAccountRequest = {
 };
 
 export async function updateTransferAccount(payload: UpdateTransferAccountRequest) {
-  return apiRequest<{ success: boolean }>('/api/v1/admin/settings/transfer-account', {
-    method: 'POST',
-    body: payload,
-  });
+  console.log("=== UPDATE TRANSFER ACCOUNT DEBUG ===");
+  console.log("Payload:", payload);
+  console.log("=== END UPDATE TRANSFER ACCOUNT DEBUG ===");
+  try {
+    const result = await apiRequest<{ success: boolean }>('/api/v1/admin/transfer-account', {
+      method: 'PUT',
+      body: payload,
+    });
+    console.log("=== UPDATE TRANSFER ACCOUNT SUCCESS ===");
+    console.log("Response:", result);
+    console.log("=== END UPDATE TRANSFER ACCOUNT SUCCESS ===");
+    return result;
+  } catch (error) {
+    console.error("=== UPDATE TRANSFER ACCOUNT ERROR ===");
+    console.error("Error:", error);
+    console.error("=== END UPDATE TRANSFER ACCOUNT ERROR ===");
+    throw error;
+  }
 }
 
 // Admin User Detail
@@ -476,4 +511,56 @@ export async function rejectDeposit(depositId: string, data?: RejectDepositReque
     method: 'POST',
     body: (data || {}) as Record<string, unknown>
   });
+}
+
+// Admin Plans
+export type AdminPlan = {
+  id: string;
+  name: string;
+  contributionAmountNaira: string;
+  isActive: boolean;
+};
+
+export type AdminPlansResponse = AdminPlan[];
+
+export type CreateAdminPlanRequest = {
+  name: string;
+  contributionAmountNaira: string;
+  isActive: boolean;
+};
+
+export async function getAdminPlans(signal?: AbortSignal) {
+  try {
+    const result = await apiRequest<AdminPlansResponse>('/api/v1/plans', { signal });
+    console.log("=== GET ADMIN PLANS SUCCESS ===");
+    console.log("Response:", result);
+    console.log("=== END GET ADMIN PLANS SUCCESS ===");
+    return result;
+  } catch (error) {
+    console.error("=== GET ADMIN PLANS ERROR ===");
+    console.error("Error:", error);
+    console.error("=== END GET ADMIN PLANS ERROR ===");
+    throw error;
+  }
+}
+
+export async function createAdminPlan(data: CreateAdminPlanRequest) {
+  console.log("=== CREATE ADMIN PLAN DEBUG ===");
+  console.log("Payload:", data);
+  console.log("=== END CREATE ADMIN PLAN DEBUG ===");
+  try {
+    const result = await apiRequest<{ plan: AdminPlan }>('/api/v1/admin/plans', {
+      method: 'POST',
+      body: data,
+    });
+    console.log("=== CREATE ADMIN PLAN SUCCESS ===");
+    console.log("Response:", result);
+    console.log("=== END CREATE ADMIN PLAN SUCCESS ===");
+    return result;
+  } catch (error) {
+    console.error("=== CREATE ADMIN PLAN ERROR ===");
+    console.error("Error:", error);
+    console.error("=== END CREATE ADMIN PLAN ERROR ===");
+    throw error;
+  }
 }

@@ -830,7 +830,7 @@ export function DashboardPage() {
                     </div>
                     <div className="flex gap-3">
                       <Button
-                        className="bg-white text-ajo-900 hover:bg-gray-100 rounded-xl h-10 px-4 text-sm font-semibold"
+                        className="bg-secondary text-ajo-900 hover:bg-secondary/90 rounded-xl h-10 px-4 text-sm font-semibold shadow-sm"
                         onClick={handleOpenDepositDialog}
                       >
                         <PlusIcon className="w-4 h-4 mr-1.5" /> Add Money
@@ -838,7 +838,7 @@ export function DashboardPage() {
                       <Link to="/withdraw">
                         <Button
                           variant="secondary"
-                          className="bg-transparent border-ajo-700 text-white hover:bg-ajo-800 rounded-xl h-10 px-4 text-sm font-semibold"
+                          className="bg-white/10 border border-white/20 text-white hover:bg-white/15 rounded-xl h-10 px-4 text-sm font-semibold"
                         >
                           Withdraw
                         </Button>

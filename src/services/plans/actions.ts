@@ -3,6 +3,7 @@ import { apiRequest } from '../apiClient';
 export type Plan = {
   id: string;
   name?: string;
+  contributionAmountNaira?: string;
   [key: string]: unknown;
 };
 
@@ -30,4 +31,11 @@ function normalizePlansResponse(res: PlansApiResponse): Plan[] {
 export async function getPlans() {
   const res = await apiRequest<PlansApiResponse>('/api/v1/plans');
   return normalizePlansResponse(res);
+}
+
+export async function selectPlan(planId: string) {
+  return apiRequest<unknown>('/api/v1/plans/select', {
+    method: 'POST',
+    body: { selectedPlanId: planId },
+  });
 }

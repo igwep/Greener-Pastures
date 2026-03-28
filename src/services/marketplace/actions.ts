@@ -1,4 +1,3 @@
-
 // src/services/marketplace/actions.ts
 import { apiRequest } from '../apiClient';
 import type { 
@@ -8,6 +7,8 @@ import type {
   ProductsResponse, 
   MarketplaceSettings,
   CreateProductFormData,
+  AdminCreateProductFormData,
+  UpdateProductFormData,
   ExtendProductFormData,
   CategoriesResponse
 } from '../../schemas/marketplace';
@@ -24,6 +25,25 @@ export async function getMyProducts(signal?: AbortSignal) {
   return apiRequest<ProductsResponse>('/api/v1/marketplace/products/me', { signal });
 }
 
+export async function updateProduct(productId: string, data: UpdateProductFormData) {
+  return apiRequest<CreateProductResponse>(`/api/v1/marketplace/products/${productId}`, {
+    method: 'PUT',
+    body: data,
+  });
+}
+
+export async function deleteProduct(productId: string) {
+  return apiRequest<void>(`/api/v1/marketplace/products/${productId}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function toggleProductActive(productId: string) {
+  return apiRequest<Product>(`/api/v1/marketplace/products/${productId}/active`, {
+    method: 'PATCH',
+  });
+}
+
 export async function extendProduct(productId: string, data: ExtendProductFormData) {
   return apiRequest<ExtendProductResponse>(`/api/v1/marketplace/products/${productId}/extend`, {
     method: 'POST',
@@ -32,8 +52,31 @@ export async function extendProduct(productId: string, data: ExtendProductFormDa
 }
 
 // Public Product Browsing
-export async function getPublicProducts(signal?: AbortSignal) {
-  return apiRequest<ProductsResponse>('/api/v1/marketplace/products', { signal });
+export type GetPublicProductsParams = {
+  limit?: number;
+  categoryId?: string;
+  cursor?: string;
+  signal?: AbortSignal;
+};
+
+export async function getPublicProducts(params?: GetPublicProductsParams) {
+  const { limit = 50, categoryId, cursor, signal } = params || {};
+  const queryParams = new URLSearchParams();
+  
+  if (limit) queryParams.append('limit', limit.toString());
+  if (categoryId) queryParams.append('categoryId', categoryId);
+  if (cursor) queryParams.append('cursor', cursor);
+  
+  const query = queryParams.toString();
+  const path = `/api/v1/marketplace/products${query ? `?${query}` : ''}`;
+  
+  console.log('=== GET PUBLIC PRODUCTS API CALL ===');
+  console.log('Params:', params);
+  console.log('Query:', query);
+  console.log('Full path:', path);
+  console.log('=== END API DEBUG ===');
+  
+  return apiRequest<ProductsResponse>(path, { signal });
 }
 
 export async function getPublicProduct(productId: string, signal?: AbortSignal) {
@@ -54,6 +97,24 @@ export async function getAdminProducts(signal?: AbortSignal) {
   return apiRequest<ProductsResponse>('/api/v1/marketplace/admin/products', { signal });
 }
 
+export type AdminCreateProductRequest = AdminCreateProductFormData;
+
+export async function createAdminProduct(data: AdminCreateProductRequest) {
+  return apiRequest<{ product: Product }>('/api/v1/marketplace/admin/products', {
+    method: 'POST',
+    body: data,
+  });
+}
+
+export type AdminProductStatus = 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'SUSPENDED' | 'REJECTED';
+
+export type ListAdminProductsParams = {
+  status?: AdminProductStatus;
+  limit?: number;
+  cursor?: string;
+  signal?: AbortSignal;
+};
+
 export async function approveProductAdmin(productId: string) {
   return apiRequest<{ product: Product }>(`/api/v1/marketplace/admin/products/${productId}/approve`, {
     method: 'POST',
@@ -62,6 +123,12 @@ export async function approveProductAdmin(productId: string) {
 
 export async function rejectProductAdmin(productId: string) {
   return apiRequest<{ product: Product }>(`/api/v1/marketplace/admin/products/${productId}/reject`, {
+    method: 'POST',
+  });
+}
+
+export async function suspendProductAdmin(productId: string) {
+  return apiRequest<{ product: Product }>(`/api/v1/marketplace/admin/products/${productId}/suspend`, {
     method: 'POST',
   });
 }
@@ -78,8 +145,12 @@ export async function updateAdminMarketplaceSettings(data: { dailyListingFeeNair
 }
 
 // Legacy functions for backward compatibility
-export async function listAdminProducts(params: { status: 'PENDING' | 'APPROVED' | 'REJECTED'; signal?: AbortSignal }) {
-  const query = new URLSearchParams({ status: params.status });
+export async function listAdminProducts(params: ListAdminProductsParams) {
+  const query = new URLSearchParams();
+  if (params.limit) query.append('limit', params.limit.toString());
+  if (params.cursor) query.append('cursor', params.cursor);
+  if (params.status) query.append('status', params.status);
+
   return apiRequest<ProductsResponse>(`/api/v1/marketplace/admin/products?${query.toString()}`, {
     signal: params.signal,
   });
