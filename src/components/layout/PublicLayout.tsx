@@ -82,8 +82,12 @@ export function PublicLayout({ children }: PublicLayoutProps) {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2, ease: 'easeInOut' }}
-              className="md:hidden border-t border-gray-100 bg-white overflow-hidden"
+              transition={{ 
+                duration: 0.15, 
+                ease: 'easeOut',
+                type: 'tween'
+              }}
+              className="md:hidden border-t border-gray-100 bg-white overflow-hidden will-change-transform"
             >
               <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 space-y-2">
                 <a
