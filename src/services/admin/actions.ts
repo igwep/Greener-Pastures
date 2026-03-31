@@ -6,6 +6,7 @@ export type AdminDashboardResponse = {
     pendingDeposits: number;
     pendingWithdrawals: number;
     pendingContributionPayments: number;
+    pendingProductListings: number;
   };
 };
 
@@ -29,6 +30,11 @@ export type AdminWithdrawal = {
   createdAt: string;
   bankAccountId: string;
   bankAccount: BankAccount;
+  user?: {
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+  };
 };
 
 export type AdminWithdrawalsResponse = {

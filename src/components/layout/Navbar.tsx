@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { BellIcon, SearchIcon, ChevronRightIcon, LogOutIcon } from 'lucide-react';
+import { ChevronRightIcon, LogOutIcon } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
@@ -80,21 +80,7 @@ export function Navbar({}: NavbarProps) {
         </div>
 
         <div className="flex items-center gap-6">
-          <div className="hidden md:flex relative w-72">
-            <SearchIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-muted" />
-            <input
-              type="text"
-              placeholder="Search transactions, plans..."
-              className="w-full pl-10 pr-4 py-2.5 bg-surface border border-transparent focus:border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-ajo-600/20 outline-none transition-all" />
-            
-          </div>
-
           <div className="flex items-center gap-4">
-            <button className="relative p-2.5 text-ink-secondary hover:bg-gray-100 rounded-xl transition-colors">
-              <BellIcon className="w-5 h-5" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
-            <div className="h-8 w-px bg-gray-200 hidden sm:block"></div>
             <div className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-1.5 pr-4 rounded-full transition-colors border border-transparent hover:border-gray-100">
               <Avatar initials={initials} size="sm" className="w-9 h-9" />
               <div className="hidden sm:block text-sm">

@@ -7,6 +7,7 @@ import {
   TargetIcon,
   WalletIcon,
   AlertCircleIcon,
+  ShoppingBagIcon,
 } from "lucide-react";
 
 // StatCard component - recreated based on the usage in AdminDashboardPage
@@ -84,6 +85,11 @@ export function Overview() {
         icon={AlertCircleIcon}
         label="Pending Payments"
         value={counts?.pendingContributionPayments?.toLocaleString() ?? "0"}
+      />
+      <StatCard
+        icon={ShoppingBagIcon}
+        label="Pending Product Listings"
+        value={counts?.pendingProductListings?.toLocaleString() ?? "0"}
       />
     </motion.div>
   );

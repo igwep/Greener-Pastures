@@ -196,8 +196,20 @@ export function WithdrawalsPage() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <UserIcon className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">User ID:</span>
-                        <span className="text-sm font-medium">{withdrawal.userId}</span>
+                        <span className="text-sm text-gray-600">User:</span>
+                        <span className="text-sm font-medium">
+                          {withdrawal.user?.firstName || withdrawal.user?.lastName
+                            ? `${withdrawal.user?.firstName ?? ''} ${withdrawal.user?.lastName ?? ''}`.trim()
+                            : withdrawal.userId}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <UserIcon className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm text-gray-600">Email:</span>
+                        <span className="text-sm font-medium">
+                          {withdrawal.user?.email ?? '—'}
+                        </span>
                       </div>
                       
                       <div className="flex items-center gap-2">

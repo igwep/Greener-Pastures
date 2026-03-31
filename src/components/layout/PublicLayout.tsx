@@ -1,11 +1,21 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { MenuIcon, XIcon } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface PublicLayoutProps {
   children: React.ReactNode;
 }
 
 export function PublicLayout({ children }: PublicLayoutProps) {
+  const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    setMobileMenuOpen(false);
+  }, [location.pathname, location.search]);
+
   return (
     <div className="min-h-screen bg-surface font-sans selection:bg-ajo-200 selection:text-ajo-900 overflow-x-hidden">
       {/* Navbar */}
@@ -18,7 +28,7 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                 alt="Greener Pastures" 
                 className="w-10 h-10 rounded-xl object-cover shadow-sm"
               />
-              <span className="font-bold text-2xl tracking-tight text-ink bg-gradient-to-r from-ink to-secondary-700 bg-clip-text text-transparent">
+              <span className="hidden md:block font-bold text-2xl tracking-tight text-ink bg-gradient-to-r from-ink to-secondary-700 bg-clip-text text-transparent">
                 Greener Pastures
               </span>
             </Link>
@@ -51,8 +61,66 @@ export function PublicLayout({ children }: PublicLayoutProps) {
                 Start Growing
               </button>
             </Link>
+            <button
+              type="button"
+              className="md:hidden inline-flex items-center justify-center h-10 w-10 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            >
+              {mobileMenuOpen ? (
+                <XIcon className="w-5 h-5 text-ink" />
+              ) : (
+                <MenuIcon className="w-5 h-5 text-ink" />
+              )}
+            </button>
           </div>
         </div>
+
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
+              className="md:hidden border-t border-gray-100 bg-white overflow-hidden"
+            >
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 space-y-2">
+                <a
+                  href="#how-it-works"
+                  className="block px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-gray-50 hover:text-ajo-600 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  How it Works
+                </a>
+                <Link
+                  to="/about"
+                  className="block px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-gray-50 hover:text-ajo-600 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  About
+                </Link>
+                <Link
+                  to="/marketplace"
+                  className="block px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-gray-50 hover:text-ajo-600 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Marketplace
+                </Link>
+
+                <div className="h-px bg-gray-100 my-2" />
+
+                <Link
+                  to="/login"
+                  className="block px-4 py-3 rounded-xl text-sm font-medium text-ink-secondary hover:bg-gray-50 hover:text-ajo-600 transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* Main Content */}
@@ -131,12 +199,12 @@ export function PublicLayout({ children }: PublicLayoutProps) {
               <div className="space-y-3 text-ink-secondary">
                 <p>
                   <a href="mailto:support@greenerpastures.com" className="hover:text-ajo-600 transition-colors">
-                    support@greenerpastures.com
+                    greenerpasturesinvestment1@gmail.com
                   </a>
                 </p>
                 <p>
                   <a href="tel:+2348000000000" className="hover:text-ajo-600 transition-colors">
-                    +234 800 000 0000
+                   07062174820
                   </a>
                 </p>
               </div>
@@ -147,12 +215,12 @@ export function PublicLayout({ children }: PublicLayoutProps) {
             <p className="text-ink-muted text-sm">
               © 2026 Greener Pastures Investment International Limited. All rights reserved.
             </p>
-            <div className="flex gap-4">
-              {/* Social placeholders */}
+            {/* <div className="flex gap-4">
+             
               <div className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"></div>
               <div className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"></div>
               <div className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"></div>
-            </div>
+            </div> */}
           </div>
         </div>
       </footer>

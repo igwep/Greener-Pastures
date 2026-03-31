@@ -27,9 +27,6 @@ export function AjoPlanPage() {
   // Calculate dynamic values - using available properties
   const dailyContribution = Number(activePlan?.contributionAmountNaira || 0);
   const currentSaved = Number(cycle?.currentCyclePaidAmountNaira || 0);
-  // Calculate total target based on daily contribution * 30 days
-  const totalTarget = dailyContribution * 30;
-  const progress = totalTarget > 0 ? (currentSaved / totalTarget) * 100 : 0;
   
   // Date calculations
   const startDate = cycle?.planStartedAt ? new Date(cycle.planStartedAt).toLocaleDateString('en-US', { 
@@ -65,7 +62,7 @@ export function AjoPlanPage() {
       const start = new Date(`${cycleFrom}T00:00:00.000Z`);
       const startMs = Number.isFinite(start.getTime()) ? start.getTime() : Date.now();
       const dayMs = 1000 * 60 * 60 * 24;
-      const end = new Date(startMs + dayMs * 29);
+      const end = new Date(startMs + dayMs * 30);
       return end.toISOString().slice(0, 10);
     }
     const d = new Date(expiresAt);
@@ -73,7 +70,7 @@ export function AjoPlanPage() {
       const start = new Date(`${cycleFrom}T00:00:00.000Z`);
       const startMs = Number.isFinite(start.getTime()) ? start.getTime() : Date.now();
       const dayMs = 1000 * 60 * 60 * 24;
-      const end = new Date(startMs + dayMs * 29);
+      const end = new Date(startMs + dayMs * 30);
       return end.toISOString().slice(0, 10);
     }
     return d.toISOString().slice(0, 10);
@@ -92,7 +89,7 @@ export function AjoPlanPage() {
     return dates;
   }, [cycleFrom, cycleTo]);
 
-  const totalDays = cycleDates.length > 0 ? cycleDates.length : 30;
+  const totalDays = cycleDates.length > 0 ? cycleDates.length : 31;
   const daysPassed = useMemo(() => {
     let count = 0;
     for (const d of cycleDates) {
@@ -100,6 +97,10 @@ export function AjoPlanPage() {
     }
     return count;
   }, [cycleDates, todayIso]);
+
+  // Calculate total target based on the actual cycle length
+  const totalTarget = dailyContribution * totalDays;
+  const progress = totalTarget > 0 ? (currentSaved / totalTarget) * 100 : 0;
 
   const daysCompleted = cycle?.currentCyclePaidDays || 0;
   const daysRemaining = Math.max(0, totalDays - daysPassed);

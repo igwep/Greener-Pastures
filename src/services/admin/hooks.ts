@@ -106,8 +106,9 @@ export function useApproveDepositMutation() {
     mutationFn: ({ depositId, data }: { depositId: string; data?: ApproveDepositRequest }) => 
       approveDeposit(depositId, data),
     onSuccess: () => {
-      // Invalidate pending deposits to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['admin', 'pending-deposits'] });
+      // Invalidate admin deposit lists so UI reflects new status
+      queryClient.invalidateQueries({ queryKey: ['admin', 'deposits'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
     }
   });
 }
@@ -118,8 +119,9 @@ export function useRejectDepositMutation() {
     mutationFn: ({ depositId, data }: { depositId: string; data?: RejectDepositRequest }) => 
       rejectDeposit(depositId, data),
     onSuccess: () => {
-      // Invalidate pending deposits to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['admin', 'pending-deposits'] });
+      // Invalidate admin deposit lists so UI reflects new status
+      queryClient.invalidateQueries({ queryKey: ['admin', 'deposits'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
     }
   });
 }

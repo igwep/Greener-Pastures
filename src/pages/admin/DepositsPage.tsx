@@ -243,6 +243,22 @@ export function DepositsPage() {
                 </div>
                 
                 <div className="ml-4 flex flex-col gap-2">
+                  {deposit.proofImagePath ? (
+                    <button
+                      type="button"
+                      onClick={() => window.open(deposit.proofImagePath!, "_blank")}
+                      className="w-28 sm:w-32 h-20 rounded-xl overflow-hidden border border-gray-200 bg-gray-50"
+                      aria-label="View proof image"
+                    >
+                      <img
+                        src={deposit.proofImagePath}
+                        alt="Deposit proof"
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </button>
+                  ) : null}
+
                   {deposit.status === 'PENDING' && (
                     <>
                       <Button

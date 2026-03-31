@@ -17,7 +17,7 @@ import {
   useApplyLoanMutation,
   useMyLoansQuery,
 } from "../services/loans/hooks";
-import { uploadFileToCloudinary, uploadImageToCloudinary } from "../services/cloudinary";
+import { uploadImageToCloudinary } from "../services/cloudinary";
 import { loanApplicationSchema, LoanApplicationFormData } from "../schemas/auth";
 import { z } from "zod";
 
@@ -52,8 +52,17 @@ export function LoanApplicationPage() {
   const handleGuarantorFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
+      // Images only
+      const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
+      if (!allowedImageTypes.includes(selectedFile.type)) {
+        setFieldErrors(prev => ({ ...prev, guarantorFormUrl: "Please upload an image file (JPEG, PNG, or WebP)." }));
+        e.target.value = "";
+        return;
+      }
+
       if (selectedFile.size > 10 * 1024 * 1024) {
         setFieldErrors(prev => ({ ...prev, guarantorFormUrl: "File size must be less than 10MB" }));
+        e.target.value = "";
         return;
       }
 
@@ -120,13 +129,16 @@ export function LoanApplicationPage() {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       // File validation using Zod-like logic
-      if (!selectedFile.type.startsWith("image/")) {
-        setFieldErrors(prev => ({ ...prev, formUrl: "Please upload an image file (PNG, JPG, etc.)" }));
+      const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
+      if (!allowedImageTypes.includes(selectedFile.type)) {
+        setFieldErrors(prev => ({ ...prev, formUrl: "Please upload an image file (JPEG, PNG, or WebP)." }));
+        e.target.value = "";
         return;
       }
       
       if (selectedFile.size > 5 * 1024 * 1024) {
         setFieldErrors(prev => ({ ...prev, formUrl: "File size must be less than 5MB" }));
+        e.target.value = "";
         return;
       }
 
@@ -185,7 +197,7 @@ export function LoanApplicationPage() {
 
       // 1. Upload to Cloudinary
       const cloudinaryRes = await uploadImageToCloudinary(file!);
-      const guarantorCloudinaryRes = await uploadFileToCloudinary(guarantorFile!);
+      const guarantorCloudinaryRes = await uploadImageToCloudinary(guarantorFile!);
 
       // 2. Submit to backend
       await applyMutation.mutateAsync({
@@ -240,15 +252,10 @@ export function LoanApplicationPage() {
     }
   };
 
-  const handleDownloadForm = () => {
-    // In a real app, this would be a link to a PDF
-    alert("Downloading application form...");
-  };
-
-  const handleDownloadGuarantorForm = () => {
-    // In a real app, this would be a link to a PDF
-    alert("Downloading guarantor form...");
-  };
+  // Files expected in /public (served from site root)
+  const loanFormDownloadHref = "/loanForm.jpeg";
+  // Put the exact doc filename in /public, e.g. Greener_Pastures_Guarantee_Form.docx
+  const guarantorFormDownloadHref = "/Greener_Pastures_Guarantee_Form.docx";
 
   // Show loading state while checking for pending loans
   if (isMyLoansLoading) {
@@ -368,22 +375,22 @@ export function LoanApplicationPage() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
-          <Button
-            variant="secondary"
-            className="rounded-xl flex items-center gap-2 border-ajo-200 text-ajo-700 hover:bg-ajo-50"
-            onClick={handleDownloadForm}
+          <a
+            href={loanFormDownloadHref}
+            download="loanForm.jpeg"
+            className="inline-flex items-center justify-center rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 bg-white text-ink border border-ajo-200 hover:bg-ajo-50 focus:ring-gray-200 shadow-sm h-11 px-4 text-base gap-2"
           >
             <DownloadIcon className="w-4 h-4" />
             Download Loan Form
-          </Button>
-          <Button
-            variant="secondary"
-            className="rounded-xl flex items-center gap-2 border-ajo-200 text-ajo-700 hover:bg-ajo-50"
-            onClick={handleDownloadGuarantorForm}
+          </a>
+          <a
+            href={guarantorFormDownloadHref}
+            download="Greener_Pastures_Guarantee_Form.docx"
+            className="inline-flex items-center justify-center rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 bg-white text-ink border border-ajo-200 hover:bg-ajo-50 focus:ring-gray-200 shadow-sm h-11 px-4 text-base gap-2"
           >
             <DownloadIcon className="w-4 h-4" />
             Download Guarantor Form
-          </Button>
+          </a>
         </div>
       </div>
 
@@ -542,7 +549,7 @@ export function LoanApplicationPage() {
                     type="file"
                     onChange={handleGuarantorFileChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    accept="image/*,application/pdf"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                   />
 
                   {guarantorFile ? (

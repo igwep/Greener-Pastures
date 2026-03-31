@@ -74,13 +74,17 @@ export function DashboardPage() {
     useState<File | null>(null);
   const [depositFieldErrors, setDepositFieldErrors] = useState<Record<string, string>>({});
   const [depositServerError, setDepositServerError] = useState<string>('');
+  const [isDepositSuccessOpen, setIsDepositSuccessOpen] = useState(false);
   const storedUser = authUser;
-  const { data: summary, isLoading, isFetching } = useDashboardSummaryQuery(isAuthenticated);
+  const { data: summary, isLoading } = useDashboardSummaryQuery(isAuthenticated);
+  
+  // Debug: log dashboard summary to console
+  console.log('Dashboard Summary:', summary);
   const { data: loanRepaymentsData } = useLoanRepaymentsQuery();
   const createDepositMutation = useCreateDepositMutation();
 
   // Show loading state only on initial load, not on refetch
-  const isInitialLoading = isLoading && !isFetching;
+  const isInitialLoading = isLoading;
 
   // Use stored summary as fallback when query fails
   const storedSummary = getStoredDashboardSummary();
@@ -131,8 +135,10 @@ export function DashboardPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      alert("Please upload an image file (PNG, JPG, etc.)");
+    const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedImageTypes.includes(file.type)) {
+      alert("Please upload an image file (JPEG, PNG, or WebP).");
+      e.target.value = "";
       return;
     }
 
@@ -175,8 +181,7 @@ export function DashboardPage() {
         return null;
       });
       setIsDepositDialogOpen(false);
-
-      alert("Deposit submitted successfully!");
+      setIsDepositSuccessOpen(true);
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Handle validation errors
@@ -717,7 +722,7 @@ export function DashboardPage() {
                       <label className="cursor-pointer">
                         <input
                           type="file"
-                          accept="image/*"
+                          accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                           onChange={handleScreenshotChange}
                           className="hidden"
                         />
@@ -774,6 +779,35 @@ export function DashboardPage() {
                       disabled={createDepositMutation.isPending}
                     >
                       Cancel
+                    </Button>
+                  </div>
+                </Card>
+              </div>
+            </div>
+          ) : null}
+
+          {isDepositSuccessOpen ? (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <button
+                type="button"
+                className="absolute inset-0 bg-black/40"
+                onClick={() => setIsDepositSuccessOpen(false)}
+                aria-label="Close success dialog"
+              />
+              <div className="relative z-10 w-full max-w-md">
+                <Card className="p-6 rounded-3xl border-none shadow-lg bg-white">
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-ink mb-2">
+                      Deposit Submitted
+                    </h3>
+                    <p className="text-sm text-ink-secondary mb-6">
+                      Your deposit proof has been received and is pending admin review.
+                    </p>
+                    <Button
+                      onClick={() => setIsDepositSuccessOpen(false)}
+                      className="w-full"
+                    >
+                      Okay
                     </Button>
                   </div>
                 </Card>
@@ -931,7 +965,7 @@ export function DashboardPage() {
                         </span>
                         <span className="opacity-30">•</span>
                         <span>
-                          {cycleMetrics.paid}/{cycleMetrics.total} days
+                          {cycleMetrics.paid}/{cycleMetrics.passed} paid • {cycleMetrics.total} total
                         </span>
                       </div>
                     </div>

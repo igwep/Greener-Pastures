@@ -5,17 +5,18 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Modal } from '../components/ui/Modal';
-import { PlusIcon, XIcon, AlertCircleIcon, WalletIcon, UploadIcon, ImageIcon } from 'lucide-react';
+import { XIcon, AlertCircleIcon, WalletIcon, UploadIcon } from 'lucide-react';
 import { useCreateProductMutation, useMarketplaceSettingsQuery, useMarketplaceCategoriesQuery } from '../services/marketplace/hooks';
 import { useDashboardSummaryQuery } from '../services/dashboard/hooks';
 import { getStoredUser } from '../services/auth/session';
-import { uploadImageToCloudinary, CloudinaryUploadResponse } from '../services/cloudinary';
+import { uploadImageToCloudinary } from '../services/cloudinary';
 import { createProductSchema, CreateProductFormData } from '../schemas/marketplace';
 import { z } from 'zod';
 
 export function AddProductPage() {
   const navigate = useNavigate();
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string>('');
   const [uploadingImages, setUploadingImages] = useState<boolean[]>([false, false, false]);
@@ -38,7 +39,7 @@ export function AddProductPage() {
 
   // API calls
   const createProductMutation = useCreateProductMutation();
-  const { data: settings, isLoading: settingsLoading } = useMarketplaceSettingsQuery();
+  const { data: settings } = useMarketplaceSettingsQuery();
   const { data: categories } = useMarketplaceCategoriesQuery();
   const { data: dashboardSummary } = useDashboardSummaryQuery();
   const storedUser = getStoredUser();
@@ -164,7 +165,7 @@ export function AddProductPage() {
 
     try {
       // Validate form data with Zod
-      const validatedData = createProductSchema.parse(formData);
+      createProductSchema.parse(formData);
 
       // Check if user can afford the listing fee
       if (!canAfford) {
@@ -206,9 +207,8 @@ export function AddProductPage() {
       console.log('=== END SUBMIT DEBUG ==='); */
       
       await createProductMutation.mutateAsync(filteredFormData);
-      
-      // Navigate to marketplace inventory page
-      navigate('/marketplace');
+
+      setShowSuccessModal(true);
     } catch (error) {
      /*  console.error('=== PRODUCT CREATION ERROR ===');
       console.error('Error type:', typeof error);
@@ -620,6 +620,38 @@ export function AddProductPage() {
               <span className="font-bold text-ajo-600">₦{listingFee.toLocaleString()}</span>
             </div>
           </div>
+        </div>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          navigate('/marketplace/my-listings');
+        }}
+        title="Product Listed Successfully!"
+        footer={
+          <Button
+            onClick={() => {
+              setShowSuccessModal(false);
+              navigate('/marketplace/my-listings');
+            }}
+          >
+            View My Products
+          </Button>
+        }
+      >
+        <div className="text-center py-4">
+          <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+          <p className="text-ink font-medium mb-2">Your product has been listed successfully!</p>
+          <p className="text-sm text-ink-secondary">Your listing is now live on the marketplace.</p>
         </div>
       </Modal>
 

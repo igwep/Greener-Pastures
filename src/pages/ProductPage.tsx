@@ -10,15 +10,21 @@ import { PublicLayout } from '../components/layout/PublicLayout';
 import {
   ArrowLeftIcon,
   EditIcon,
-  CopyIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  PhoneIcon,
+  FacebookIcon,
+  InstagramIcon,
+  MusicIcon,
+  GlobeIcon
 } from 'lucide-react';
 export function ProductPage() {
   const { id } = useParams();
   const { data: productData, isLoading, error } = usePublicProductQuery(id || '');
   const [isOwner, setIsOwner] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showSellerPhone, setShowSellerPhone] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const storedUser = getStoredUser();
   const product = productData?.product;
 
@@ -26,6 +32,62 @@ export function ProductPage() {
   const allImages = product?.images?.map(img => img.imagePath) || product?.imageUrls || [];
   const hasMultipleImages = allImages.length > 1;
   const currentImage = allImages[currentImageIndex] || allImages[0];
+
+  const normalizeSocialUrl = (value: unknown) => {
+    if (typeof value !== 'string') return '';
+    const trimmed = value.trim();
+    if (!trimmed) return '';
+    // If backend returns a bare handle/link without protocol, make it clickable.
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
+  };
+
+  const socialLinks = [
+    {
+      key: 'facebook',
+      label: 'Facebook',
+      url: normalizeSocialUrl(product?.facebookUrl),
+      Icon: FacebookIcon,
+    },
+    {
+      key: 'instagram',
+      label: 'Instagram',
+      url: normalizeSocialUrl(product?.instagramUrl),
+      Icon: InstagramIcon,
+    },
+    {
+      key: 'tiktok',
+      label: 'TikTok',
+      url: normalizeSocialUrl(product?.tiktokUrl),
+      // Lucide doesn't ship a dedicated TikTok icon, so we use a music note as a close visual.
+      Icon: MusicIcon,
+    },
+    {
+      key: 'other',
+      label: 'More',
+      url: normalizeSocialUrl(product?.otherUrl),
+      Icon: GlobeIcon,
+    },
+  ].filter((s) => s.url);
+
+  const hasSocialLinks = socialLinks.length > 0;
+
+  const phoneNumber = (product?.phoneNumber ?? '').toString();
+  const telHref = phoneNumber
+    ? `tel:${phoneNumber
+        .trim()
+        // Keep digits and a leading + if present.
+        .replace(/[^\d+]/g, '')
+        .replace(/(?!^)\+/g, '')}`
+    : '';
+
+  const descriptionText = (product?.description ?? '').toString();
+  const DESCRIPTION_TRUNCATE_AT = 80;
+  const shouldTruncateDescription =
+    descriptionText.length > DESCRIPTION_TRUNCATE_AT;
+  const visibleDescription = isDescriptionExpanded
+    ? descriptionText
+    : descriptionText.slice(0, DESCRIPTION_TRUNCATE_AT);
 
   const goToPreviousImage = () => {
     setCurrentImageIndex(prev => prev === 0 ? allImages.length - 1 : prev - 1);
@@ -188,20 +250,64 @@ export function ProductPage() {
           </p>
 
           <div className="space-y-4 mb-10 text-ink-secondary leading-relaxed text-lg">
-            <p>{product.description}</p>
+            <p>
+              {visibleDescription}
+              {!isDescriptionExpanded && shouldTruncateDescription ? '…' : null}
+            </p>
+            {shouldTruncateDescription && (
+              <button
+                type="button"
+                onClick={() => setIsDescriptionExpanded((v) => !v)}
+                className="text-ajo-600 font-semibold hover:text-ajo-700 transition-colors"
+              >
+                {isDescriptionExpanded ? 'Read less' : 'Read more'}
+              </button>
+            )}
           </div>
 
           <div className="mt-auto space-y-6">
-            <div className="flex gap-4">
-              <Button
-                className="flex-1 rounded-xl h-14 text-lg shadow-md"
-                size="lg"
-                onClick={() => navigator.clipboard.writeText(product.phoneNumber)}
-              >
-                <CopyIcon className="w-4 h-4 mr-2" />
-                Copy Phone Number
-              </Button>
-            </div>
+            {!showSellerPhone ? (
+              <div className="flex gap-4">
+                <Button
+                  className="flex-1 rounded-xl h-14 text-lg shadow-md"
+                  size="lg"
+                  onClick={() => setShowSellerPhone(true)}
+                  disabled={!telHref}
+                >
+                  <PhoneIcon className="w-4 h-4 mr-2" />
+                  Contact Seller
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-4">
+                <a
+                  href={telHref}
+                  className="flex-1 rounded-xl h-14 text-lg shadow-md inline-flex items-center justify-center gap-2 bg-ajo-900 text-white hover:bg-ajo-900/90 transition-colors"
+                  aria-label="Call seller"
+                >
+                  <PhoneIcon className="w-4 h-4" />
+                  <span className="font-semibold">{phoneNumber}</span>
+                </a>
+              </div>
+            )}
+
+            {hasSocialLinks && (
+              <div className="flex items-center gap-3 flex-wrap">
+                {socialLinks.map(({ key, label, url, Icon }) => (
+                  <a
+                    key={key}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={label}
+                    title={label}
+                    className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+                  >
+                    <Icon className="w-5 h-5 text-ajo-600" />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

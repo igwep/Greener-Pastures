@@ -27,6 +27,12 @@ export function RegisterPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string>('');
 
+  const formatPlanPrice = (amount: unknown) => {
+    const numeric = typeof amount === 'string' ? Number(amount) : Number.NaN;
+    if (!Number.isFinite(numeric)) return '';
+    return ` - ₦${numeric.toLocaleString()}/day`;
+  };
+
   // Clear error when user starts typing
   const clearFieldError = (field: string) => {
     if (fieldErrors[field]) {
@@ -250,6 +256,7 @@ export function RegisterPage() {
                         {typeof plan.name === 'string' && plan.name.trim().length > 0
                           ? plan.name
                           : plan.id}
+                        {formatPlanPrice(plan.contributionAmountNaira)}
                       </option>
                     ))}
                   </select>

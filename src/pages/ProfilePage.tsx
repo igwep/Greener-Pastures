@@ -107,8 +107,18 @@ export function ProfilePage() {
       accountNumber
     };
 
+    console.log('[Profile][Bank] Save bank details payload:', {
+      selectedBankAccountId,
+      bankAccountsCount: bankAccounts.length,
+      payload,
+    });
+
     try {
       if (!bankAccounts.length) {
+        console.log('[Profile][Bank] Creating bank account payload:', {
+          ...payload,
+          isDefault: true,
+        });
         await createBankAccountMutation.mutateAsync({
           bankName: payload.bankName,
           accountName: payload.accountName,
@@ -120,6 +130,13 @@ export function ProfilePage() {
       }
 
       if (!selectedBankAccountId) return;
+      console.log('[Profile][Bank] Updating bank account payload:', {
+        bankAccountId: selectedBankAccountId,
+        payload: {
+          ...payload,
+          isDefault: true,
+        },
+      });
       await updateBankAccountMutation.mutateAsync({
         bankAccountId: selectedBankAccountId,
         payload: {

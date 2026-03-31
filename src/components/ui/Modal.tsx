@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import { useEffect, ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XIcon } from 'lucide-react';
 interface ModalProps {
@@ -25,7 +26,7 @@ export function Modal({
       document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
-  return (
+  const content = (
     <AnimatePresence>
       {isOpen &&
       <>
@@ -40,9 +41,13 @@ export function Modal({
             opacity: 0
           }}
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-ink/40 backdrop-blur-sm" />
+          className="fixed inset-0 bg-ink/40 backdrop-blur-sm"
+          style={{ zIndex: 2147483646 }} />
         
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div
+            className="fixed inset-0 flex items-center justify-center p-4 pointer-events-none"
+            style={{ zIndex: 2147483647 }}
+          >
             <motion.div
             initial={{
               opacity: 0,
@@ -81,5 +86,9 @@ export function Modal({
         </>
       }
     </AnimatePresence>);
+
+  if (typeof document === 'undefined') return content;
+
+  return createPortal(content, document.body);
 
 }
