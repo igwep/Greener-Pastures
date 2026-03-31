@@ -40,6 +40,7 @@ import {
   type AdminWithdrawalsResponse,
   getAdminPlans,
   createAdminPlan,
+  deleteAdminUser,
   type CreateAdminPlanRequest,
   type AdminPlansResponse,
   type AdminPlan
@@ -294,6 +295,16 @@ export function useCreateAdminPlanMutation() {
     mutationFn: createAdminPlan,
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ['admin', 'plans'] });
+    },
+  });
+}
+
+export function useDeleteAdminUserMutation() {
+  const qc = useQueryClient();
+  return useMutation<{ success: boolean }, ApiError, string>({
+    mutationFn: deleteAdminUser,
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ['admin', 'users'] });
     },
   });
 }

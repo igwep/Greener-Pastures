@@ -570,3 +570,9 @@ export async function createAdminPlan(data: CreateAdminPlanRequest) {
     throw error;
   }
 }
+
+export async function deleteAdminUser(userId: string) {
+  return apiRequest<{ success: boolean }>(`/api/v1/admin/users/${userId}`, {
+    method: 'DELETE',
+  });
+}

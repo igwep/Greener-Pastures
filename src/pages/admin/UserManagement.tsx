@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from "react";
 import { Input } from "../../components/ui/Input";
+import { Button } from "../../components/ui/Button";
 import {
   useAdminUsersQuery,
   useAdminUserFullDataQuery,
+  useDeleteAdminUserMutation,
 } from "../../services/admin/hooks";
 import {
   AdminUserSummary,
@@ -14,11 +16,15 @@ import { Card } from "../../components/ui/Card";
 import { Modal } from "../../components/ui/Modal";
 import { Badge } from "../../components/ui/Badge";
 import { formatNaira } from "../../utils/formatters";
+import { useToast } from "../../contexts/ToastContext";
 
 export function UserManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const deleteMutation = useDeleteAdminUserMutation();
+  const toast = useToast();
 
   const { data, isLoading } = useAdminUsersQuery({
     q: debouncedSearchTerm,
@@ -26,6 +32,25 @@ export function UserManagement() {
   });
 
   const users = useMemo(() => data?.users ?? [], [data]);
+
+  const handleDeleteUser = (userId: string) => {
+    setUserToDelete(userId);
+  };
+
+  const confirmDelete = () => {
+    if (userToDelete) {
+      deleteMutation.mutate(userToDelete, {
+        onSuccess: () => {
+          toast.success('User deleted successfully');
+          setUserToDelete(null);
+        },
+        onError: (error) => {
+          toast.error('Failed to delete user');
+          console.error('Delete user error:', error);
+        }
+      });
+    }
+  };
 
   return (
     <div>
@@ -45,6 +70,7 @@ export function UserManagement() {
             key={user.id}
             user={user}
             onClick={() => setSelectedUserId(user.id)}
+            onDelete={() => handleDeleteUser(user.id)}
           />
         ))}
       </div>
@@ -55,6 +81,15 @@ export function UserManagement() {
           onClose={() => setSelectedUserId(null)}
         />
       )}
+
+      {userToDelete && (
+        <DeleteConfirmModal
+          userId={userToDelete}
+          onConfirm={confirmDelete}
+          onCancel={() => setUserToDelete(null)}
+          isDeleting={deleteMutation.isPending}
+        />
+      )}
     </div>
   );
 }
@@ -62,10 +97,14 @@ export function UserManagement() {
 function UserCard({
   user,
   onClick,
+  onDelete,
 }: {
   user: AdminUserSummary;
   onClick: () => void;
+  onDelete: () => void;
 }) {
+  const canDelete = user.email !== 'marketplace-admin@system.local';
+  
   return (
     <Card className="p-4 cursor-pointer" onClick={onClick}>
       <div className="flex items-center justify-between">
@@ -86,6 +125,21 @@ function UserCard({
           </div>
         </div>
       </div>
+      {canDelete && (
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="w-full"
+          >
+            Delete User
+          </Button>
+        </div>
+      )}
     </Card>
   );
 }
@@ -100,9 +154,6 @@ function UserDetailModal({
   const { data, isLoading } = useAdminUserFullDataQuery(userId);
 
   const user = data?.user;
-
-  // Log user full details to console when modal opens
-  console.log('User Full Details:', user);
 
   if (isLoading) {
     return (
@@ -280,6 +331,68 @@ function UserDetailModal({
               )}
             </Card>
           </div>
+      </div>
+    </Modal>
+  );
+}
+
+function DeleteConfirmModal({
+  userId,
+  onConfirm,
+  onCancel,
+  isDeleting,
+}: {
+  userId: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  isDeleting: boolean;
+}) {
+  const { data } = useAdminUsersQuery({ q: '', limit: 1 });
+  const user = data?.users?.find(u => u.id === userId);
+
+  return (
+    <Modal
+      isOpen={true}
+      onClose={isDeleting ? () => {} : onCancel}
+      title="Confirm Delete User"
+      footer={
+        <div className="flex gap-3 w-full">
+          <Button 
+            variant="ghost" 
+            className="flex-1" 
+            onClick={onCancel}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            className="flex-1"
+            onClick={onConfirm}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                Deleting...
+              </>
+            ) : (
+              'Delete User'
+            )}
+          </Button>
+        </div>
+      }
+    >
+      <div className="text-sm text-ink-secondary">
+        Are you sure you want to delete this user? This action cannot be undone.
+        {user && (
+          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+            <div className="font-medium text-ink">
+              {user.firstName} {user.lastName}
+            </div>
+            <div className="text-sm text-gray-500">{user.email}</div>
+          </div>
+        )}
       </div>
     </Modal>
   );
