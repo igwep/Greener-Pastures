@@ -290,9 +290,9 @@ export function EditProductPage() {
         tiktokUrl: formData.tiktokUrl,
         otherUrl: formData.otherUrl
       });
-      console.log('Schema being used:', updateProductSchema);
+ /*      console.log('Schema being used:', updateProductSchema);
       console.log('=== END VALIDATION DEBUG ===');
-      
+       */
       // Filter out empty image URLs for validation
       const validImageUrls = formData.imageUrls.filter(url => url && url.trim() !== '');
       

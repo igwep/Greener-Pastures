@@ -30,129 +30,27 @@
     <priority>0.9</priority>
   </url>
 
-  <!-- Authentication Pages -->
   <url>
-    <loc>https://greenerpastures.com/login</loc>
+    <loc>https://greenerpastures.com/services</loc>
     <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
-  </url>
-
-  <url>
-    <loc>https://greenerpastures.com/register</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <url>
-    <loc>https://greenerpastures.com/forgot-password</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-
-  <url>
-    <loc>https://greenerpastures.com/reset-password</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-
-  <!-- Admin Pages -->
-  <url>
-    <loc>https://greenerpastures.com/admin/login</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
-  </url>
-
-  <url>
-    <loc>https://greenerpastures.com/admin</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <!-- Protected User Dashboard Pages -->
-  <url>
-    <loc>https://greenerpastures.com/dashboard</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
   </url>
 
   <url>
     <loc>https://greenerpastures.com/plans</loc>
     <lastmod>2026-03-31</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <url>
-    <loc>https://greenerpastures.com/calendar</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://greenerpastures.com/wallet</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>daily</changefreq>
     <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://greenerpastures.com/withdraw</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <url>
-    <loc>https://greenerpastures.com/profile</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://greenerpastures.com/services</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
   </url>
 
   <url>
     <loc>https://greenerpastures.com/loan-application</loc>
     <lastmod>2026-03-31</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://greenerpastures.com/my-loans</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
 
-  <!-- Marketplace Pages -->
-  <url>
-    <loc>https://greenerpastures.com/marketplace/my-listings</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <url>
-    <loc>https://greenerpastures.com/marketplace/add-product</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <!-- Note: Individual product pages and edit product pages are dynamic -->
-  <!-- They should be generated programmatically based on actual products -->
+  <!-- Note: Individual product pages should be generated programmatically -->
+  <!-- Dynamic routes like /marketplace/product/:id need server-side generation -->
 </urlset>
