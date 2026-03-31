@@ -17,12 +17,6 @@ export function MarketplacePage() {
   const { data: settings } = useMarketplaceSettingsQuery();
   const { data: categoriesData } = useCategoriesQuery();
 
-  console.log('=== MARKETPLACE CATEGORY DEBUG ===');
-  console.log('selectedCategoryId:', selectedCategoryId);
-  console.log('categoriesData:', categoriesData);
-  console.log('productsData:', productsData);
-  console.log('=== END CATEGORY DEBUG ===');
-
   // Fallback mock data when API fails
   const mockProducts = [
     {
@@ -196,15 +190,6 @@ export function MarketplacePage() {
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredProducts.map((product) => {
-            console.log('=== RENDERING PRODUCT ===');
-            console.log('Product ID:', product.id);
-            console.log('Product title:', product.title);
-            console.log('Product imageUrls:', product.imageUrls);
-            console.log('ImageUrls type:', typeof product.imageUrls);
-            console.log('ImageUrls length:', product.imageUrls?.length);
-            console.log('First image URL:', product.imageUrls?.[0]);
-            console.log('=== END PRODUCT DEBUG ===');
-            
             // Check if current user is the product owner
             const isOwner = false; // Public marketplace doesn't show edit options
             

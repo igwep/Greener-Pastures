@@ -100,7 +100,7 @@ export function AjoPlanPage() {
 
   // Calculate total target based on the actual cycle length
   const totalTarget = dailyContribution * totalDays;
-  const progress = totalTarget > 0 ? (currentSaved / totalTarget) * 100 : 0;
+  const progress = totalTarget > 0 ? Math.round((currentSaved / totalTarget) * 100 * 10) / 10 : 0;
 
   const daysCompleted = cycle?.currentCyclePaidDays || 0;
   const daysRemaining = Math.max(0, totalDays - daysPassed);
@@ -249,13 +249,13 @@ export function AjoPlanPage() {
                     <p className="text-ajo-200 text-sm font-medium uppercase tracking-wider mb-2">
                       Total Target
                     </p>
-                    <p className="text-3xl sm:text-4xl font-bold tracking-tight">₦{totalTarget.toLocaleString()}</p>
+                    <p className="text-xl sm:text-4xl font-bold tracking-tight">₦{totalTarget.toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-ajo-200 text-sm font-medium uppercase tracking-wider mb-2">
                       Amount Saved
                     </p>
-                    <p className="text-3xl sm:text-4xl font-bold text-ajo-300 tracking-tight">
+                    <p className="text-xl sm:text-4xl font-bold text-ajo-300 tracking-tight">
                       ₦{currentSaved.toLocaleString()}
                     </p>
                   </div>

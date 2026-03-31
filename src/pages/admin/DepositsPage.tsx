@@ -21,9 +21,6 @@ export function DepositsPage() {
 
   const { data: depositsData, isLoading: isDepositsLoading } = useAdminAllDepositsQuery();
 
-  // Log the deposits response to console
-  console.log('All Deposits Response:', depositsData);
-
   const deposits = useMemo(() => {
     if (!depositsData?.deposits) return [];
     

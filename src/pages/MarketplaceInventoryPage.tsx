@@ -39,13 +39,6 @@ export function MarketplaceInventoryPage() {
   const toggleProductActiveMutation = useToggleProductActiveMutation();
   const toast = useToast();
 
-  console.log('=== INVENTORY PAGE DEBUG ===');
-  console.log('MarketplaceInventoryPage rendered!');
-  console.log('isLoading:', isProductsLoading);
-  console.log('productsData:', productsData);
-  console.log('=== END INVENTORY DEBUG ===');
-
-  // Mock data for development
   const mockProducts: Product[] = [
     {
       id: '1',
@@ -148,12 +141,6 @@ export function MarketplaceInventoryPage() {
   ];
 
   const products = productsData?.products || mockProducts;
-
-  console.log('=== PRODUCTS DATA DEBUG ===');
-  console.log('Final products array:', products);
-  console.log('Products length:', products.length);
-  console.log('Using mock data?', !productsData?.products);
-  console.log('=== END PRODUCTS DEBUG ===');
 
   // Calculate statistics
   const stats = useMemo(() => {

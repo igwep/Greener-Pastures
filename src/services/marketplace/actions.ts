@@ -70,12 +70,6 @@ export async function getPublicProducts(params?: GetPublicProductsParams) {
   const query = queryParams.toString();
   const path = `/api/v1/marketplace/products${query ? `?${query}` : ''}`;
   
-  console.log('=== GET PUBLIC PRODUCTS API CALL ===');
-  console.log('Params:', params);
-  console.log('Query:', query);
-  console.log('Full path:', path);
-  console.log('=== END API DEBUG ===');
-  
   return apiRequest<ProductsResponse>(path, { signal });
 }
 

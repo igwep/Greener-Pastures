@@ -124,11 +124,6 @@ export function CalendarPage() {
     return { paid: set, missed: missedSet };
   }, [calendarData, cycleDates]);
 
-  console.log("[CalendarPage] summary:", summary);
-  console.log("[CalendarPage] cycleFrom:", cycleFrom);
-  console.log("[CalendarPage] cycleTo:", cycleTo);
-  console.log("[CalendarPage] calendarData:", calendarData);
-
   const walletBalanceNaira = useMemo(() => {
     const raw = summary?.user?.wallet?.balanceNaira;
     const n = typeof raw === "string" ? Number(raw) : NaN;

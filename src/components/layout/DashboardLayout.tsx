@@ -15,6 +15,7 @@ import {
   ArrowDownToLineIcon,
   CreditCardIcon,
   SettingsIcon,
+  PhoneIcon,
 } from 'lucide-react';
 
 export function DashboardLayout() {
@@ -130,6 +131,20 @@ export function DashboardLayout() {
                       </button>
                     );
                   })}
+
+                  <a
+                    href="tel:07062174820"
+                    onClick={() => setMoreOpen(false)}
+                    className="flex items-center gap-3 p-3 rounded-2xl border border-gray-100 hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-surface flex items-center justify-center">
+                      <PhoneIcon className="w-5 h-5 text-ajo-700" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-semibold text-ink">Contact Support</div>
+                      <div className="text-xs text-ink-muted">07062174820</div>
+                    </div>
+                  </a>
                 </div>
               </motion.div>
             </div>

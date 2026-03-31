@@ -52,23 +52,9 @@ export function WithdrawPage() {
     currentPage * withdrawalsPerPage
   );
 
-  // Debug logging for button state
   const isButtonDisabled = !defaultBankAccount || !amount || Number(amount) <= 0 || Number(amount) > walletBalanceNaira || createWithdrawalMutation.isPending;
-  
-  console.log("Button state debug:", {
-    isButtonDisabled,
-    hasBankAccount: !!defaultBankAccount,
-    hasAmount: !!amount,
-    amount: amount,
-    amountNumber: Number(amount),
-    walletBalance: walletBalanceNaira,
-    isPending: createWithdrawalMutation.isPending,
-    bankAccountId: defaultBankAccount?.id
-  });
 
   const handleWithdrawalSubmit = async () => {
-    console.log("Withdrawal button clicked!");
-    
     // Clear previous errors
     setFieldErrors({});
     setServerError('');
@@ -88,8 +74,6 @@ export function WithdrawPage() {
         return;
       }
 
-      console.log("Validation passed - submitting withdrawal...");
-      
       await createWithdrawalMutation.mutateAsync({
         amountNaira: validatedData.amountNaira,
         bankAccountId: validatedData.bankAccountId,
@@ -100,11 +84,6 @@ export function WithdrawPage() {
       
       // Show success modal
       setShowSuccessModal(true);
-      
-      console.log("Withdrawal request submitted:", {
-        amountNaira: validatedData.amountNaira,
-        bankAccountId: validatedData.bankAccountId,
-      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         // Handle validation errors
@@ -181,7 +160,6 @@ export function WithdrawPage() {
 
           <form className="space-y-8 flex-1 flex flex-col" onSubmit={(e) => {
           e.preventDefault();
-          console.log("Form submitted - preventing default");
           handleWithdrawalSubmit();
         }}>
             <div className="relative">
@@ -194,7 +172,6 @@ export function WithdrawPage() {
                 placeholder="0.00"
                 value={amount}
                 onChange={(e) => {
-                  console.log("Input onChange triggered:", e.target.value);
                   setAmount(e.target.value);
                   clearFieldError('amountNaira');
                 }}

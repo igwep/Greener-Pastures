@@ -15,8 +15,6 @@ import { changePasswordSchema, UpdateProfileFormData, ChangePasswordFormData } f
 import { z } from 'zod';
 
 export function ProfilePage() {
-  console.log('🔥 ProfilePage component mounted!');
-  
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') ?? 'personal');
   const { data: me, isLoading: isMeLoading, error: meError } = useAuthMeQuery();
@@ -107,18 +105,8 @@ export function ProfilePage() {
       accountNumber
     };
 
-    console.log('[Profile][Bank] Save bank details payload:', {
-      selectedBankAccountId,
-      bankAccountsCount: bankAccounts.length,
-      payload,
-    });
-
     try {
       if (!bankAccounts.length) {
-        console.log('[Profile][Bank] Creating bank account payload:', {
-          ...payload,
-          isDefault: true,
-        });
         await createBankAccountMutation.mutateAsync({
           bankName: payload.bankName,
           accountName: payload.accountName,
@@ -130,13 +118,6 @@ export function ProfilePage() {
       }
 
       if (!selectedBankAccountId) return;
-      console.log('[Profile][Bank] Updating bank account payload:', {
-        bankAccountId: selectedBankAccountId,
-        payload: {
-          ...payload,
-          isDefault: true,
-        },
-      });
       await updateBankAccountMutation.mutateAsync({
         bankAccountId: selectedBankAccountId,
         payload: {
@@ -169,11 +150,6 @@ export function ProfilePage() {
     e.preventDefault();
     setProfileErrors({});
 
-    console.log('=== PROFILE SUBMIT DEBUG ===');
-    console.log('Form data being submitted:', profileForm);
-    console.log('User data:', me?.user);
-    console.log('=== END PROFILE SUBMIT DEBUG ===');
-
     try {
       // Create a payload with only the fields that are being updated
       const payload: any = {
@@ -189,8 +165,6 @@ export function ProfilePage() {
         payload.newPassword = profileForm.newPassword;
       }
 
-      console.log('Payload being sent:', payload);
-
       await updateProfileMutation.mutateAsync(payload);
       toast.success('Profile updated successfully!');
       
@@ -198,10 +172,7 @@ export function ProfilePage() {
       setProfileForm(prev => ({ ...prev, currentPassword: '', newPassword: '' }));
     } catch (error) {
       console.error('=== PROFILE SUBMIT ERROR ===');
-      console.error('Error details:', error);
-      
       if (error instanceof z.ZodError) {
-        console.log('Zod error issues:', error.issues);
         const errors: Record<string, string> = {};
         error.issues.forEach((err) => {
           if (err.path.length > 0) {
@@ -222,35 +193,22 @@ export function ProfilePage() {
 
     alert('🔥 Password form submitted! Check console for details.');
 
-    console.log('=== PASSWORD SUBMIT DEBUG ===');
-    console.log('Password form data:', passwordForm);
-    console.log('Current profile form:', profileForm);
-    console.log('User data:', me?.user);
-    console.log('=== END PASSWORD SUBMIT DEBUG ===');
-
     try {
       // Check if passwords match
       if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-        console.log('❌ Passwords do not match');
         setPasswordErrors({ confirmPassword: 'Passwords do not match' });
         return;
       }
 
-      console.log('✅ Passwords match, validating...');
       const validatedData = changePasswordSchema.parse(passwordForm);
-      console.log('✅ Validation passed:', validatedData);
-      
-      console.log('🚀 Calling updateProfileMutation...');
       
       // Only send password fields, not profile fields
       const payload = {
         currentPassword: validatedData.currentPassword,
         newPassword: validatedData.newPassword
       };
-      console.log('📤 Payload being sent:', payload);
       
-      const result = await updateProfileMutation.mutateAsync(payload);
-      console.log('✅ API call successful:', result);
+      await updateProfileMutation.mutateAsync(payload);
       
       toast.success('Password changed successfully!');
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -262,7 +220,6 @@ export function ProfilePage() {
       console.error('❌ Error message:', error instanceof Error ? error.message : 'No message');
       
       if (error instanceof z.ZodError) {
-        console.log('❌ Zod error issues:', error.issues);
         const errors: Record<string, string> = {};
         error.issues.forEach((err) => {
           if (err.path.length > 0) {
@@ -272,7 +229,6 @@ export function ProfilePage() {
         });
         setPasswordErrors(errors);
       } else {
-        console.log('❌ Non-Zod error, showing toast');
         toast.error('Failed to change password. Please try again.');
       }
     }
@@ -401,7 +357,6 @@ export function ProfilePage() {
                     type="submit"
                     className="rounded-xl h-12 px-8 relative"
                     disabled={updateProfileMutation.isPending}
-                    onClick={() => console.log('Button clicked!')}
                   >
                     {updateProfileMutation.isPending && (
                       <div className="absolute inset-0 flex items-center justify-center">
@@ -547,9 +502,7 @@ export function ProfilePage() {
                     className="rounded-xl h-12 px-8 relative"
                     disabled={updateProfileMutation.isPending}
                     onClick={() => {
-                      console.log('🔥 PASSWORD BUTTON CLICKED!');
-                      console.log('🔥 Form data:', passwordForm);
-                      console.log('🔥 Password errors:', passwordErrors);
+                      // Handle password change
                     }}
                   >
                     {updateProfileMutation.isPending && (

@@ -77,9 +77,6 @@ export function DashboardPage() {
   const [isDepositSuccessOpen, setIsDepositSuccessOpen] = useState(false);
   const storedUser = authUser;
   const { data: summary, isLoading } = useDashboardSummaryQuery(isAuthenticated);
-  
-  // Debug: log dashboard summary to console
-  console.log('Dashboard Summary:', summary);
   const { data: loanRepaymentsData } = useLoanRepaymentsQuery();
   const createDepositMutation = useCreateDepositMutation();
 

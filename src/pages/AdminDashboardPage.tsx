@@ -118,17 +118,6 @@ export function AdminDashboardPage() {
               {item.label}
             </button>
           ))}
-          <div className="pt-4 mt-4 border-t border-gray-800">
-            {["Savings Plans", "Withdrawals", "Marketplace"].map((item, i) => (
-              <a
-                key={i}
-                href="#"
-                className="block px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
-              >
-                {item}
-              </a>
-            ))}
-          </div>
         </nav>
 
         {/* Logout Button */}

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   useAdminProductsQuery,
   useApproveProductMutation,
@@ -30,16 +30,6 @@ export function Marketplace({ onAddProduct }: Props) {
     const products = data?.products ?? [];
     return products.filter((p) => p.status === status);
   }, [data?.products, status]);
-
-  useEffect(() => {
-    console.log("=== ADMIN MARKETPLACE PRODUCTS DEBUG ===");
-    console.log("status:", status);
-    console.log("data:", data);
-    console.log("products:", data?.products);
-    console.log("filteredProducts:", filteredProducts);
-    console.log("nextCursor:", (data as any)?.nextCursor);
-    console.log("=== END ADMIN MARKETPLACE PRODUCTS DEBUG ===");
-  }, [data, filteredProducts, status]);
 
   const handleApprove = async (productId: string) => {
     try {
