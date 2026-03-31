@@ -59,7 +59,7 @@ export function LandingPage() {
               variant="success"
               className="mb-8 px-4 py-1.5 text-sm rounded-full bg-secondary-100 text-ink border border-secondary-200">
               
-              Trusted by 10,000+ savers
+              Trusted by 500+ savers
             </Badge>
             <h1 className="text-5xl lg:text-7xl font-bold text-ink leading-[1.1] mb-6 tracking-tight">
               Your money,
@@ -93,13 +93,13 @@ export function LandingPage() {
                   Start Growing
                 </Button>
               </Link>
-              <a href="#how-it-works">
+              <a href="/marketplace">
                 <Button
                   variant="ghost"
                   size="lg"
                   className="w-full sm:w-auto text-lg px-6 h-14 group">
                   
-                  See How It Works
+                  Or visit Our MarketPlace
                   <ArrowRightIcon className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </a>
@@ -108,19 +108,19 @@ export function LandingPage() {
               <div className="flex -space-x-3">
                 <Avatar
                   initials="AO"
-                  src="https://i.pravatar.cc/100?img=1"
+                  src="https://i.pinimg.com/736x/d8/2d/7c/d82d7c02807abb32089d0850aef432e6.jpg"
                   size="md"
                   className="border-2 border-surface" />
                 
                 <Avatar
                   initials="CO"
-                  src="https://i.pravatar.cc/100?img=2"
+                  src="https://img.freepik.com/free-photo/african-american-man-wearing-round-glasses_273609-10062.jpg?semt=ais_incoming&w=740&q=80"
                   size="md"
                   className="border-2 border-surface" />
                 
                 <Avatar
                   initials="EK"
-                  src="https://i.pravatar.cc/100?img=3"
+                  src="https://img.freepik.com/free-photo/close-up-smiley-man-with-glasses_23-2149009406.jpg"
                   size="md"
                   className="border-2 border-surface" />
                 
@@ -432,7 +432,7 @@ export function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
             <div className="flex flex-col items-center">
               <div className="text-5xl font-black text-ink mb-2 tracking-tight">
-                10k+
+                500+
               </div>
               <div className="w-12 h-1 bg-ajo-600 rounded-full mb-4"></div>
               <div className="text-ink-secondary font-medium">
@@ -441,7 +441,7 @@ export function LandingPage() {
             </div>
             <div className="flex flex-col items-center">
               <div className="text-5xl font-black text-ink mb-2 tracking-tight">
-                ₦500M+
+                ₦20M+
               </div>
               <div className="w-12 h-1 bg-ajo-600 rounded-full mb-4"></div>
               <div className="text-ink-secondary font-medium">Total Saved</div>
@@ -483,7 +483,7 @@ export function LandingPage() {
               'I never thought saving could be this easy. Greener Pastures helped me save ₦150,000 in just 3 months!',
               name: 'Adaeze O.',
               role: 'Teacher',
-              location: 'Lagos',
+              location: 'Victoria Island, Lagos',
               img: '1'
             },
             {
@@ -491,7 +491,7 @@ export function LandingPage() {
               'The daily tracking keeps me accountable. Best financial decision I made this year.',
               name: 'Chinedu E.',
               role: 'Software Developer',
-              location: 'Abuja',
+              location: 'Yaba, Lagos',
               img: '2'
             },
             {
@@ -499,7 +499,7 @@ export function LandingPage() {
               'I love the marketplace feature. I sold my old phone and added the money to my savings!',
               name: 'Ngozi K.',
               role: 'Entrepreneur',
-              location: 'Port Harcourt',
+              location: 'Yaba, Lagos',
               img: '3'
             }].
             map((t, i) =>
@@ -518,10 +518,10 @@ export function LandingPage() {
                   "{t.quote}"
                 </p>
                 <div className="flex items-center gap-4 pt-6 border-t border-gray-100">
-                  <Avatar
+                  {/* <Avatar
                   initials={t.name.charAt(0)}
                   src={`https://i.pravatar.cc/100?img=${t.img}`}
-                  size="md" />
+                  size="md" /> */}
                 
                   <div>
                     <p className="font-bold text-ink">{t.name}</p>
