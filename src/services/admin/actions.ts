@@ -146,15 +146,27 @@ export type AdminUserSummary = {
 
 export type ListAdminUsersResponse = {
   users: AdminUserSummary[];
+  pagination: {
+    limit: number;
+    offset: number;
+    page: number;
+    totalCount: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
 };
 
-export async function getAdminUsers(params: { q?: string; limit?: number; signal?: AbortSignal }) {
+export async function getAdminUsers(params: { q?: string; limit?: number; page?: number; signal?: AbortSignal }) {
   const query = new URLSearchParams();
   if (params.q) {
     query.set('q', params.q);
   }
   if (params.limit) {
     query.set('limit', params.limit.toString());
+  }
+  if (params.page) {
+    query.set('page', params.page.toString());
   }
   return apiRequest<ListAdminUsersResponse>(`/api/v1/admin/users?${query.toString()}`, {
     signal: params.signal,

@@ -127,7 +127,7 @@ export function useRejectDepositMutation() {
   });
 }
 
-export function useAdminUsersQuery(params: { q?: string; limit?: number }) {
+export function useAdminUsersQuery(params: { q?: string; limit?: number; page?: number }) {
   return useQuery({
     queryKey: ['admin', 'users', params],
     queryFn: ({ signal }) => getAdminUsers({ ...params, signal }),

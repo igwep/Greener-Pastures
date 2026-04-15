@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
+import { Pagination } from "../../components/ui/Pagination";
 import {
   useAdminUsersQuery,
   useAdminUserFullDataQuery,
@@ -8,8 +9,6 @@ import {
 } from "../../services/admin/hooks";
 import {
   AdminUserSummary,
-  AdminUserFullData,
-  LedgerEntry,
 } from "../../services/admin/actions";
 import { useDebounce } from "../../hooks/useDebounce";
 import { Card } from "../../components/ui/Card";
@@ -17,21 +16,49 @@ import { Modal } from "../../components/ui/Modal";
 import { Badge } from "../../components/ui/Badge";
 import { formatNaira } from "../../utils/formatters";
 import { useToast } from "../../contexts/ToastContext";
+import { useQueryClient } from '@tanstack/react-query';
 
 export function UserManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const deleteMutation = useDeleteAdminUserMutation();
   const toast = useToast();
+  const queryClient = useQueryClient();
+
+  // Reset to page 1 when search term changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm]);
 
   const { data, isLoading } = useAdminUsersQuery({
     q: debouncedSearchTerm,
-    limit: 20,
+    limit: itemsPerPage,
+    page: currentPage,
   });
 
   const users = useMemo(() => data?.users ?? [], [data]);
+  const pagination = data?.pagination;
+  
+  // Fallback pagination data if backend doesn't return it
+  const fallbackPagination = {
+    limit: itemsPerPage,
+    offset: (currentPage - 1) * itemsPerPage,
+    page: currentPage,
+    totalCount: users.length,
+    totalPages: Math.max(1, Math.ceil(users.length / itemsPerPage)),
+    hasNextPage: false,
+    hasPreviousPage: currentPage > 1
+  };
+  
+  const paginationData = pagination || fallbackPagination;
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleDeleteUser = (userId: string) => {
     setUserToDelete(userId);
@@ -43,6 +70,8 @@ export function UserManagement() {
         onSuccess: () => {
           toast.success('User deleted successfully');
           setUserToDelete(null);
+          // Refresh current page to update the list
+          queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
         },
         onError: (error) => {
           toast.error('Failed to delete user');
@@ -74,6 +103,18 @@ export function UserManagement() {
           />
         ))}
       </div>
+
+      {/* Pagination */}
+      {(paginationData || users.length > 0) && (
+        <Pagination
+          currentPage={paginationData?.page ?? currentPage}
+          totalPages={paginationData?.totalPages ?? 1}
+          totalItems={paginationData?.totalCount ?? users.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
+          isLoading={isLoading}
+        />
+      )}
 
       {selectedUserId && (
         <UserDetailModal
@@ -353,7 +394,7 @@ function DeleteConfirmModal({
   return (
     <Modal
       isOpen={true}
-      onClose={isDeleting ? () => {} : onCancel}
+      onClose={isDeleting ? () => undefined : onCancel}
       title="Confirm Delete User"
       footer={
         <div className="flex gap-3 w-full">
@@ -395,42 +436,5 @@ function DeleteConfirmModal({
         )}
       </div>
     </Modal>
-  );
-}
-
-function LedgerTable({ entries }: { entries: LedgerEntry[] }) {
-  return (
-    <table className="min-w-full divide-y divide-gray-200">
-      <thead className="bg-gray-50">
-        <tr>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Date
-          </th>
-          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Description
-          </th>
-          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-            Amount
-          </th>
-        </tr>
-      </thead>
-      <tbody className="bg-white divide-y divide-gray-200">
-        {entries.map((entry, index) => (
-          <tr key={index}>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {new Date(entry.createdAt).toLocaleDateString()}
-            </td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              {entry.description}
-            </td>
-            <td
-              className={`px-6 py-4 whitespace-nowrap text-sm text-right ${entry.amount > 0 ? "text-green-500" : "text-red-500"}`}
-            >
-              {formatNaira(entry.amount)}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
   );
 }
