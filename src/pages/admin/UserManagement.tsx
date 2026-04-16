@@ -218,27 +218,27 @@ function UserDetailModal({
 
   return (
     <Modal isOpen={true} onClose={onClose} title="User Details">
-      <div className="p-6 max-h-[80vh] overflow-y-auto">
-        <div className="space-y-6">
+      <div className="p-4 sm:p-6 max-h-[85vh] overflow-y-auto max-w-4xl mx-auto">
+        <div className="space-y-4 sm:space-y-6">
             {/* User Basic Info */}
-            <Card className="p-4">
-              <h3 className="text-lg font-bold mb-3">Basic Information</h3>
-              <div className="grid grid-cols-2 gap-4">
+            <Card className="p-3 sm:p-4">
+              <h3 className="text-lg font-bold mb-4">Basic Information</h3>
+              <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-500">Name</p>
-                  <p className="font-medium">{user.firstName} {user.lastName}</p>
+                  <p className="text-sm text-gray-500 mb-1">Full Name</p>
+                  <p className="font-medium text-base">{user.firstName} {user.lastName}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Email</p>
-                  <p className="font-medium">{user.email}</p>
+                  <p className="text-sm text-gray-500 mb-1">Email Address</p>
+                  <p className="font-medium text-base break-all">{user.email}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Phone</p>
-                  <p className="font-medium">{user.phone || 'N/A'}</p>
+                  <p className="text-sm text-gray-500 mb-1">Phone Number</p>
+                  <p className="font-medium text-base">{user.phone || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Status</p>
-                  <Badge variant={user.isActive ? 'success' : 'error'}>
+                  <p className="text-sm text-gray-500 mb-1">Account Status</p>
+                  <Badge variant={user.isActive ? 'success' : 'error'} className="text-sm">
                     {user.isActive ? 'Active' : 'Inactive'}
                   </Badge>
                 </div>
@@ -246,68 +246,68 @@ function UserDetailModal({
             </Card>
 
             {/* Plan Information */}
-            <Card className="p-4">
-              <h3 className="text-lg font-bold mb-3">Plan Information</h3>
-              <div className="grid grid-cols-2 gap-4">
+            <Card className="p-3 sm:p-4">
+              <h3 className="text-lg font-bold mb-4">Plan Information</h3>
+              <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-500">Selected Plan</p>
-                  <p className="font-medium">{user.selectedPlan?.name || 'N/A'}</p>
+                  <p className="text-sm text-gray-500 mb-1">Selected Plan</p>
+                  <p className="font-medium text-base">{user.selectedPlan?.name || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Contribution Amount</p>
-                  <p className="font-medium">{formatNaira(user.planContributionAmountNaira)}</p>
+                  <p className="text-sm text-gray-500 mb-1">Contribution Amount</p>
+                  <p className="font-medium text-base">{formatNaira(user.planContributionAmountNaira)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Plan Started</p>
-                  <p className="font-medium">{user.planStartedAt ? new Date(user.planStartedAt).toLocaleDateString() : 'N/A'}</p>
+                  <p className="text-sm text-gray-500 mb-1">Plan Started</p>
+                  <p className="font-medium text-base">{user.planStartedAt ? new Date(user.planStartedAt).toLocaleDateString() : 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Plan Expires</p>
-                  <p className="font-medium">{user.planExpiresAt ? new Date(user.planExpiresAt).toLocaleDateString() : 'N/A'}</p>
+                  <p className="text-sm text-gray-500 mb-1">Plan Expires</p>
+                  <p className="font-medium text-base">{user.planExpiresAt ? new Date(user.planExpiresAt).toLocaleDateString() : 'N/A'}</p>
                 </div>
               </div>
             </Card>
 
             {/* Balance Information */}
-            <Card className="p-4">
-              <h3 className="text-lg font-bold mb-3">Balance Information</h3>
-              <div className="grid grid-cols-2 gap-4">
+            <Card className="p-3 sm:p-4">
+              <h3 className="text-lg font-bold mb-4">Balance Information</h3>
+              <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-500">Main Balance</p>
-                  <p className="font-medium text-green-600">{formatNaira(user.mainBalanceNaira)}</p>
+                  <p className="text-sm text-gray-500 mb-1">Main Balance</p>
+                  <p className="font-medium text-base text-green-600">{formatNaira(user.mainBalanceNaira)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Loan Balance</p>
-                  <p className="font-medium text-red-600">{formatNaira(user.loanBalanceNaira)}</p>
+                  <p className="text-sm text-gray-500 mb-1">Loan Balance</p>
+                  <p className="font-medium text-base text-red-600">{formatNaira(user.loanBalanceNaira)}</p>
                 </div>
               </div>
             </Card>
 
             {/* Payment Statistics */}
-            <Card className="p-4">
-              <h3 className="text-lg font-bold mb-3">Payment Statistics</h3>
-              <div className="grid grid-cols-2 gap-4">
+            <Card className="p-3 sm:p-4">
+              <h3 className="text-lg font-bold mb-4">Payment Statistics</h3>
+              <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-500">Current Cycle Paid Days</p>
-                  <p className="font-medium">{user.currentCyclePaidDays || 0}</p>
+                  <p className="text-sm text-gray-500 mb-1">Current Cycle Paid Days</p>
+                  <p className="font-medium text-base">{user.currentCyclePaidDays || 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Current Cycle Paid Amount</p>
-                  <p className="font-medium">{formatNaira(user.currentCyclePaidAmountNaira)}</p>
+                  <p className="text-sm text-gray-500 mb-1">Current Cycle Paid Amount</p>
+                  <p className="font-medium text-base">{formatNaira(user.currentCyclePaidAmountNaira)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Total Paid Days</p>
-                  <p className="font-medium">{user.totalPaidDays || 0}</p>
+                  <p className="text-sm text-gray-500 mb-1">Total Paid Days</p>
+                  <p className="font-medium text-base">{user.totalPaidDays || 0}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Total Paid Amount</p>
-                  <p className="font-medium">{formatNaira(user.totalPaidAmountNaira)}</p>
+                  <p className="text-sm text-gray-500 mb-1">Total Paid Amount</p>
+                  <p className="font-medium text-base">{formatNaira(user.totalPaidAmountNaira)}</p>
                 </div>
               </div>
             </Card>
 
             {/* Recent Deposits */}
-            <Card className="p-4">
+            <Card className="p-3 sm:p-4">
               <h3 className="text-lg font-bold mb-3">Recent Deposits ({user.deposits?.length || 0})</h3>
               {user.deposits && user.deposits.length > 0 ? (
                 <div className="overflow-x-auto">
@@ -340,7 +340,7 @@ function UserDetailModal({
             </Card>
 
             {/* Recent Loan Applications */}
-            <Card className="p-4">
+            <Card className="p-3 sm:p-4">
               <h3 className="text-lg font-bold mb-3">Loan Applications ({user.loanApplications?.length || 0})</h3>
               {user.loanApplications && user.loanApplications.length > 0 ? (
                 <div className="overflow-x-auto">
