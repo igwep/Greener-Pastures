@@ -192,9 +192,20 @@ function UserDetailModal({
   userId: string;
   onClose: () => void;
 }) {
-  const { data, isLoading } = useAdminUserFullDataQuery(userId);
+  const [depositsCursor, setDepositsCursor] = useState<string | null>(null);
+  const [withdrawalsCursor, setWithdrawalsCursor] = useState<string | null>(null);
+  const [depositsLimit] = useState(20);
+  const [withdrawalsLimit] = useState(20);
+
+  const { data, isLoading, isFetching } = useAdminUserFullDataQuery(userId, {
+    depositsLimit,
+    withdrawalsLimit,
+    depositsCursor: depositsCursor || undefined,
+    withdrawalsCursor: withdrawalsCursor || undefined,
+  });
 
   const user = data?.user;
+  const pagination = data?.pagination;
 
   if (isLoading) {
     return (
@@ -308,7 +319,19 @@ function UserDetailModal({
 
             {/* Recent Deposits */}
             <Card className="p-3 sm:p-4">
-              <h3 className="text-lg font-bold mb-3">Recent Deposits ({user.deposits?.length || 0})</h3>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-bold">Recent Deposits ({user.deposits?.length || 0})</h3>
+                {pagination?.deposits?.nextCursor && (
+                  <Button
+                    size="sm"
+                    onClick={() => setDepositsCursor(pagination.deposits.nextCursor)}
+                    disabled={isFetching}
+                    className="text-xs"
+                  >
+                    {isFetching ? 'Loading...' : 'Load More'}
+                  </Button>
+                )}
+              </div>
               {user.deposits && user.deposits.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
@@ -320,7 +343,7 @@ function UserDetailModal({
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {user.deposits.slice(0, 5).map((deposit, index) => (
+                      {user.deposits.map((deposit, index) => (
                         <tr key={deposit.id || index}>
                           <td className="px-4 py-2 text-sm">{deposit.createdAt ? new Date(deposit.createdAt).toLocaleDateString() : 'N/A'}</td>
                           <td className="px-4 py-2 text-sm">{deposit.amountNaira ? formatNaira(deposit.amountNaira) : 'N/A'}</td>
@@ -336,6 +359,75 @@ function UserDetailModal({
                 </div>
               ) : (
                 <p className="text-gray-500">No deposits found</p>
+              )}
+              {depositsCursor && (
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setDepositsCursor(null)}
+                    disabled={isFetching}
+                  >
+                    Reset
+                  </Button>
+                </div>
+              )}
+            </Card>
+
+            {/* Recent Withdrawals */}
+            <Card className="p-3 sm:p-4">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-bold">Recent Withdrawals ({user.withdrawals?.length || 0})</h3>
+                {pagination?.withdrawals?.nextCursor && (
+                  <Button
+                    size="sm"
+                    onClick={() => setWithdrawalsCursor(pagination.withdrawals.nextCursor)}
+                    disabled={isFetching}
+                    className="text-xs"
+                  >
+                    {isFetching ? 'Loading...' : 'Load More'}
+                  </Button>
+                )}
+              </div>
+              {user.withdrawals && user.withdrawals.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {user.withdrawals.map((withdrawal, index) => (
+                        <tr key={withdrawal.id || index}>
+                          <td className="px-4 py-2 text-sm">{withdrawal.createdAt ? new Date(withdrawal.createdAt).toLocaleDateString() : 'N/A'}</td>
+                          <td className="px-4 py-2 text-sm">{withdrawal.amountNaira ? formatNaira(withdrawal.amountNaira) : 'N/A'}</td>
+                          <td className="px-4 py-2 text-sm">
+                            <Badge variant={withdrawal.status === 'APPROVED' ? 'success' : withdrawal.status === 'PAID' ? 'neutral' : withdrawal.status === 'REJECTED' ? 'error' : 'warning'}>
+                              {withdrawal.status || 'UNKNOWN'}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-gray-500">No withdrawals found</p>
+              )}
+              {withdrawalsCursor && (
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setWithdrawalsCursor(null)}
+                    disabled={isFetching}
+                  >
+                    Reset
+                  </Button>
+                </div>
               )}
             </Card>
 

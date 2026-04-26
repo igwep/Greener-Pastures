@@ -134,10 +134,10 @@ export function useAdminUsersQuery(params: { q?: string; limit?: number; page?: 
   });
 }
 
-export function useAdminUserFullDataQuery(userId: string) {
+export function useAdminUserFullDataQuery(userId: string, params?: { depositsLimit?: number; withdrawalsLimit?: number; depositsCursor?: string; withdrawalsCursor?: string }) {
   return useQuery({
-    queryKey: ['admin', 'users', userId, 'full-data'],
-    queryFn: ({ signal }) => getAdminUserFullData(userId, signal),
+    queryKey: ['admin', 'users', userId, 'full-data', params],
+    queryFn: ({ signal }) => getAdminUserFullData(userId, { ...params, signal }),
     enabled: !!userId,
   });
 }

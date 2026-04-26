@@ -226,11 +226,38 @@ export type AdminUserFullData = {
 
 export type GetAdminUserFullDataResponse = {
   user: AdminUserFullData;
+  pagination: {
+    deposits: {
+      nextCursor: string | null;
+      limit: number;
+    };
+    withdrawals: {
+      nextCursor: string | null;
+      limit: number;
+    };
+  };
 };
 
-export async function getAdminUserFullData(userId: string, signal?: AbortSignal) {
-  return apiRequest<GetAdminUserFullDataResponse>(`/api/v1/admin/users/${userId}/full-data`, {
-    signal,
+export async function getAdminUserFullData(userId: string, params?: { depositsLimit?: number; withdrawalsLimit?: number; depositsCursor?: string; withdrawalsCursor?: string; signal?: AbortSignal }) {
+  const query = new URLSearchParams();
+  if (params?.depositsLimit) {
+    query.set('depositsLimit', params.depositsLimit.toString());
+  }
+  if (params?.withdrawalsLimit) {
+    query.set('withdrawalsLimit', params.withdrawalsLimit.toString());
+  }
+  if (params?.depositsCursor) {
+    query.set('depositsCursor', params.depositsCursor);
+  }
+  if (params?.withdrawalsCursor) {
+    query.set('withdrawalsCursor', params.withdrawalsCursor);
+  }
+  
+  const queryString = query.toString();
+  const endpoint = `/api/v1/admin/users/${userId}/full-data${queryString ? `?${queryString}` : ''}`;
+  
+  return apiRequest<GetAdminUserFullDataResponse>(endpoint, {
+    signal: params?.signal,
   });
 }
 
