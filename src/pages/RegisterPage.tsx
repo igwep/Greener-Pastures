@@ -12,6 +12,8 @@ import {
   UserIcon,
   MailIcon,
   PhoneIcon,
+  EyeIcon,
+  EyeOffIcon,
   LockIcon } from
 'lucide-react';
 export function RegisterPage() {
@@ -23,6 +25,7 @@ export function RegisterPage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string>('');
@@ -214,9 +217,23 @@ export function RegisterPage() {
 
                 <Input
                   label="Password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   icon={<LockIcon className="w-5 h-5" />}
+                  endIcon={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((current) => !current)}
+                      className="text-ink-muted hover:text-ink transition-colors"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? (
+                        <EyeOffIcon className="w-5 h-5" />
+                      ) : (
+                        <EyeIcon className="w-5 h-5" />
+                      )}
+                    </button>
+                  }
                   value={password}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     setPassword(e.target.value);

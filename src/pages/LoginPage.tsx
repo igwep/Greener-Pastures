@@ -8,7 +8,7 @@ import { useLoginMutation } from '../services/auth/hooks';
 import { useAuth } from '../contexts/AuthContext';
 import { loginSchema, LoginFormData } from '../schemas/auth';
 import { z } from 'zod';
-import { MailIcon, LockIcon } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, MailIcon, LockIcon } from 'lucide-react';
 export function LoginPage() {
   const navigate = useNavigate();
   const loginMutation = useLoginMutation();
@@ -16,6 +16,7 @@ export function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState<string>('');
 
@@ -166,9 +167,23 @@ export function LoginPage() {
                 <div>
                   <Input
                     label="Password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     icon={<LockIcon className="w-5 h-5" />}
+                    endIcon={
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((current) => !current)}
+                        className="text-ink-muted hover:text-ink transition-colors"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? (
+                          <EyeOffIcon className="w-5 h-5" />
+                        ) : (
+                          <EyeIcon className="w-5 h-5" />
+                        )}
+                      </button>
+                    }
                     value={password}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       setPassword(e.target.value);
